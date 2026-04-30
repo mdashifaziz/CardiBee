@@ -1,0 +1,62 @@
+[
+  {
+    "id": "uc_01HY1A2B3C4D5E6F7G8H9I0J",
+    "bank_id": "bank_ebl",
+    "bank_name": "EBL",
+    "card_type_id": "ct_ebl_plat_visa",
+    "product_name": "Platinum Visa",
+    "network": "Visa",
+    "type": "credit",
+    "nickname": "Daily Driver",
+    "last_digits": "4821",
+    "gradient": "navy",
+    "is_default": true,
+    "active_offer_count": 4,
+    "created_at": "2025-11-15T09:00:00Z"
+  },
+  {
+    "id": "uc_02KZ5L6M7N8O9P0Q1R2S3T4U",
+    "bank_id": "bank_brac",
+    "bank_name": "BRAC Bank",
+    "card_type_id": "ct_brac_world_mc",
+    "product_name": "World Mastercard",
+    "network": "Mastercard",
+    "type": "credit",
+    "nickname": "Travel",
+    "last_digits": "1102",
+    "gradient": "emerald",
+    "is_default": false,
+    "active_offer_count": 5,
+    "created_at": "2025-11-20T14:30:00Z"
+  },
+  {
+    "id": "uc_03AB4C5D6E7F8G9H0I1J2K3L",
+    "bank_id": "bank_city",
+    "bank_name": "City Bank",
+    "card_type_id": "ct_city_amex_gold",
+    "product_name": "American Express Gold",
+    "network": "Amex",
+    "type": "credit",
+    "nickname": "Dining",
+    "last_digits": "9043",
+    "gradient": "burgundy",
+    "is_default": false,
+    "active_offer_count": 3,
+    "created_at": "2025-12-01T11:00:00Z"
+  },
+  {
+    "id": "uc_04DB6N7O8P9DBBL0Q1R2S3T4",
+    "bank_id": "bank_dbbl",
+    "bank_name": "Dutch-Bangla",
+    "card_type_id": "ct_dbbl_nexus_visa_debit",
+    "product_name": "Nexus Visa Debit",
+    "network": "Visa",
+    "type": "debit",
+    "nickname": "Salary",
+    "last_digits": "7765",
+    "gradient": "graphite",
+    "is_default": false,
+    "active_offer_count": 2,
+    "created_at": "2025-12-10T08:00:00Z"
+  }
+]

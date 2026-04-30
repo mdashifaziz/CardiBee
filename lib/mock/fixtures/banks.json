@@ -1,0 +1,9 @@
+[
+  { "id": "bank_ebl",   "name": "Eastern Bank Limited",           "name_bn": "ইস্টার্ন ব্যাংক লিমিটেড",   "short_code": "EBL",                 "logo_url": null },
+  { "id": "bank_brac",  "name": "BRAC Bank",                      "name_bn": "ব্র্যাক ব্যাংক",           "short_code": "BRAC Bank",           "logo_url": null },
+  { "id": "bank_city",  "name": "City Bank",                      "name_bn": "সিটি ব্যাংক",              "short_code": "City Bank",           "logo_url": null },
+  { "id": "bank_dbbl",  "name": "Dutch-Bangla Bank",              "name_bn": "ডাচ-বাংলা ব্যাংক",        "short_code": "Dutch-Bangla",        "logo_url": null },
+  { "id": "bank_scb",   "name": "Standard Chartered Bangladesh",  "name_bn": "স্ট্যান্ডার্ড চার্টার্ড", "short_code": "Standard Chartered",  "logo_url": null },
+  { "id": "bank_hsbc",  "name": "HSBC Bangladesh",                "name_bn": "এইচএসবিসি",               "short_code": "HSBC",                "logo_url": null },
+  { "id": "bank_prime", "name": "Prime Bank",                     "name_bn": "প্রাইম ব্যাংক",            "short_code": "Prime Bank",          "logo_url": null }
+]

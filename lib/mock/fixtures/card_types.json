@@ -1,0 +1,35 @@
+{
+  "bank_ebl": [
+    { "id": "ct_ebl_plat_visa",  "product_name": "Platinum Visa",    "network": "Visa",       "default_type": "credit" },
+    { "id": "ct_ebl_aqua_mc",    "product_name": "Aqua Mastercard",  "network": "Mastercard", "default_type": "credit" },
+    { "id": "ct_ebl_visa_sig",   "product_name": "Visa Signature",   "network": "Visa",       "default_type": "credit" }
+  ],
+  "bank_brac": [
+    { "id": "ct_brac_world_mc",  "product_name": "World Mastercard", "network": "Mastercard", "default_type": "credit" },
+    { "id": "ct_brac_visa_plat", "product_name": "Visa Platinum",    "network": "Visa",       "default_type": "credit" },
+    { "id": "ct_brac_tara_visa", "product_name": "Tara Visa",        "network": "Visa",       "default_type": "credit" }
+  ],
+  "bank_city": [
+    { "id": "ct_city_amex_gold", "product_name": "American Express Gold",     "network": "Amex", "default_type": "credit" },
+    { "id": "ct_city_amex_plat", "product_name": "American Express Platinum", "network": "Amex", "default_type": "credit" },
+    { "id": "ct_city_visa_sig",  "product_name": "Visa Signature",            "network": "Visa", "default_type": "credit" }
+  ],
+  "bank_dbbl": [
+    { "id": "ct_dbbl_nexus_visa_debit", "product_name": "Nexus Visa Debit",   "network": "Visa",       "default_type": "debit"  },
+    { "id": "ct_dbbl_nexus_mc",         "product_name": "Nexus Mastercard",   "network": "Mastercard", "default_type": "debit"  },
+    { "id": "ct_dbbl_plat_credit",      "product_name": "Platinum Credit",    "network": "Visa",       "default_type": "credit" }
+  ],
+  "bank_scb": [
+    { "id": "ct_scb_visa_plat",  "product_name": "Visa Platinum",    "network": "Visa",       "default_type": "credit" },
+    { "id": "ct_scb_visa_inf",   "product_name": "Visa Infinite",    "network": "Visa",       "default_type": "credit" },
+    { "id": "ct_scb_saadiq_mc",  "product_name": "Saadiq Mastercard","network": "Mastercard", "default_type": "credit" }
+  ],
+  "bank_hsbc": [
+    { "id": "ct_hsbc_visa_plat", "product_name": "Visa Platinum",    "network": "Visa",       "default_type": "credit" },
+    { "id": "ct_hsbc_prem_mc",   "product_name": "Premier Mastercard","network": "Mastercard","default_type": "credit" }
+  ],
+  "bank_prime": [
+    { "id": "ct_prime_mc_world", "product_name": "Mastercard World", "network": "Mastercard", "default_type": "credit" },
+    { "id": "ct_prime_visa_sig", "product_name": "Visa Signature",   "network": "Visa",       "default_type": "credit" }
+  ]
+}

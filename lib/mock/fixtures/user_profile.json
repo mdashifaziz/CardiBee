@@ -1,0 +1,17 @@
+{
+  "id": "usr_01HX7B9K2M3N4P5Q6R7S8T9U",
+  "full_name": "Arif Hossain",
+  "phone": "+880 17XX XXXX 71",
+  "email": "arif@cardibee.app",
+  "language": "en",
+  "avatar_url": null,
+  "savings_ytd_bdt": 12000,
+  "created_at": "2025-11-01T10:30:00Z",
+  "subscription": {
+    "plan": "free",
+    "status": "active",
+    "current_period_end": null,
+    "card_limit": 3,
+    "cards_used": 4
+  }
+}
