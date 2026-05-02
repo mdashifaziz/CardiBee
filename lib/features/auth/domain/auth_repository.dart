@@ -1,29 +1,37 @@
 import 'package:cardibee_flutter/features/auth/domain/models/user_profile.dart';
 
+/// Thrown when login is attempted for an account that does not exist (API code 101).
+class AuthNewUserException implements Exception {
+  const AuthNewUserException();
+  @override
+  String toString() => 'No account found. Please sign up.';
+}
+
 abstract interface class AuthRepository {
-  /// Request OTP via SMS. Returns request_id.
-  Future<({String requestId, String maskedPhone})> requestOtp({
-    required String phone,
-    required String purpose, // 'signup' | 'login' | 'delete_account'
+  /// Login with username or email + password.
+  /// Throws [AuthNewUserException] if the account does not exist (code 101).
+  Future<({String accessToken, String refreshToken, String username})> login({
+    required String usernameOrEmail,
+    required String password,
   });
 
-  /// Verify OTP and return authenticated user.
-  Future<({UserProfile user, bool isNewUser})> verifyOtp({
+  /// Request OTP for new account signup.
+  Future<({String requestId, String maskedEmail})> requestSignupOtp({
+    required String username,
+    required String email,
+    required int age,
+    required String gender,
+  });
+
+  /// Verify OTP and complete signup. Returns tokens on success.
+  Future<({String accessToken, String refreshToken, String username})> verifySignupOtp({
     required String requestId,
     required String otp,
-    String? fullName,
-    String? fcmToken,
   });
 
   /// Logout — revokes refresh token.
   Future<void> logout({String? fcmToken});
 
-  /// Delete account (requires re-auth OTP).
-  Future<void> deleteAccount({
-    required String requestId,
-    required String otp,
-  });
-
-  /// Get current profile (from cache or network).
+  /// Get current profile.
   Future<UserProfile> getProfile();
 }

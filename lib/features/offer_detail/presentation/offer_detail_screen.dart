@@ -5,6 +5,7 @@ import 'package:cardibee_flutter/core/widgets/credit_card_visual.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
+import 'package:cardibee_flutter/features/offers/providers/favorites_notifier.dart';
 import 'package:cardibee_flutter/features/offers/providers/offers_provider.dart';
 
 class OfferDetailScreen extends ConsumerWidget {
@@ -52,22 +53,18 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
     _offer = widget.offer;
   }
 
-  Future<void> _toggleSave() async {
-    final repo = ref.read(offersRepositoryProvider);
-    if (_offer.isSaved) {
-      await repo.unsaveOffer(_offer.id);
-    } else {
-      await repo.saveOffer(_offer.id);
-    }
-    setState(() => _offer = _offer.copyWith(isSaved: !_offer.isSaved));
+  void _toggleSave() {
+    ref.read(favoritesProvider.notifier).toggle(_offer.id);
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme  = Theme.of(context);
-    final cs     = theme.colorScheme;
-    final tokens = theme.tokens;
-    final cards  = ref.watch(cardsNotifierProvider).valueOrNull ?? [];
+    final theme    = Theme.of(context);
+    final cs       = theme.colorScheme;
+    final tokens   = theme.tokens;
+    final cards    = ref.watch(cardsNotifierProvider).valueOrNull ?? [];
+    final savedIds = ref.watch(favoritesProvider).valueOrNull ?? {};
+    final isSaved  = savedIds.contains(_offer.id);
 
     // Find which of the user's cards qualify for this offer
     final qualifying = cards.where((uc) => _offer.eligibleCards.any(
@@ -111,10 +108,10 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
               ),
               const SizedBox(width: 4),
               _GlassBtn(
-                icon: _offer.isSaved
+                icon: isSaved
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
-                iconColor: _offer.isSaved ? cs.error : Colors.white,
+                iconColor: isSaved ? cs.error : Colors.white,
                 onTap: _toggleSave,
               ),
               const SizedBox(width: 8),

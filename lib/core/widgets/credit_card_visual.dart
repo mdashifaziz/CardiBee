@@ -41,7 +41,14 @@ class CreditCardVisual extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: gradient,
               borderRadius: tokens.brLg,
-              boxShadow: tokens.shadowLg,
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33000000),
+                  blurRadius: 16,
+                  offset: Offset(0, 8),
+                  spreadRadius: -4,
+                ),
+              ],
             ),
             clipBehavior: Clip.hardEdge,
             child: Stack(

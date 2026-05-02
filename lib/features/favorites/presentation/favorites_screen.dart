@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/offer_card_widget.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
+import 'package:cardibee_flutter/features/offers/providers/favorites_notifier.dart';
 import 'package:cardibee_flutter/features/offers/providers/offers_provider.dart';
 
 class FavoritesScreen extends ConsumerStatefulWidget {
@@ -13,7 +14,7 @@ class FavoritesScreen extends ConsumerStatefulWidget {
 }
 
 class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
-  List<Offer> _saved = [];
+  List<Offer> _allOffers = [];
   bool _loading = true;
 
   @override
@@ -26,7 +27,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
     setState(() => _loading = true);
     try {
       final result = await ref.read(offersRepositoryProvider).listSavedOffers();
-      setState(() => _saved = result.items);
+      setState(() => _allOffers = result.items);
     } finally {
       setState(() => _loading = false);
     }
@@ -34,9 +35,12 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme  = Theme.of(context);
-    final cs     = theme.colorScheme;
-    final tokens = theme.tokens;
+    final theme    = Theme.of(context);
+    final cs       = theme.colorScheme;
+    final tokens   = theme.tokens;
+    // Reactively filter: disappears when user untaps heart
+    final savedIds = ref.watch(favoritesProvider).valueOrNull ?? {};
+    final visible  = _allOffers.where((o) => savedIds.contains(o.id)).toList();
 
     return Scaffold(
       backgroundColor: cs.surface,
@@ -46,7 +50,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
           children: [
             const Text('Favorites'),
             Text(
-              '${_saved.length} saved offers',
+              '${visible.length} saved offers',
               style: theme.textTheme.bodySmall?.copyWith(
                   color: cs.onSurfaceVariant),
             ),
@@ -55,24 +59,16 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : _saved.isEmpty
+          : visible.isEmpty
               ? _EmptyFavorites()
               : ListView.separated(
                   padding: EdgeInsets.fromLTRB(
                       tokens.s20, tokens.s16, tokens.s20, tokens.s24),
-                  itemCount: _saved.length,
+                  itemCount: visible.length,
                   separatorBuilder: (_, __) => SizedBox(height: tokens.s8),
-                  itemBuilder: (_, i) => OfferCardWidget(
-                    offer: _saved[i],
-                    onFavoriteToggle: () => _unsave(_saved[i].id),
-                  ),
+                  itemBuilder: (_, i) => OfferCardWidget(offer: visible[i]),
                 ),
     );
-  }
-
-  Future<void> _unsave(String id) async {
-    await ref.read(offersRepositoryProvider).unsaveOffer(id);
-    setState(() => _saved.removeWhere((o) => o.id == id));
   }
 }
 

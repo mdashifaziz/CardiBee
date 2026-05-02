@@ -11,53 +11,80 @@ class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() => const AuthIdle();
 
-  Future<void> requestOtp({
-    required String phone,
-    required bool isSignup,
+  Future<void> login({
+    required String usernameOrEmail,
+    required String password,
   }) async {
     state = const AuthLoading();
     try {
-      final result = await ref.read(authRepositoryProvider).requestOtp(
-        phone: _normalisePhone(phone),
-        purpose: isSignup ? 'signup' : 'login',
+      final result = await ref.read(authRepositoryProvider).login(
+        usernameOrEmail: usernameOrEmail,
+        password: password,
+      );
+      await ref.read(tokenStorageProvider).saveTokens(
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      );
+      state = AuthSuccess(username: result.username);
+    } on AuthNewUserException {
+      state = const AuthNewUser();
+    } catch (e) {
+      state = AuthError(_message(e));
+    }
+  }
+
+  Future<void> requestSignupOtp({
+    required String username,
+    required String email,
+    required int age,
+    required String gender,
+  }) async {
+    state = const AuthLoading();
+    try {
+      final result = await ref.read(authRepositoryProvider).requestSignupOtp(
+        username: username,
+        email: email,
+        age: age,
+        gender: gender,
       );
       state = AuthOtpSent(
         requestId: result.requestId,
-        maskedPhone: result.maskedPhone,
-        isSignup: isSignup,
+        maskedEmail: result.maskedEmail,
+        username: username,
+        email: email,
+        age: age,
+        gender: gender,
       );
     } catch (e) {
       state = AuthError(_message(e));
     }
   }
 
-  Future<void> verifyOtp({
+  Future<void> verifySignupOtp({
     required String requestId,
     required String otp,
-    String? fullName,
   }) async {
+    final prev = state;
     state = const AuthLoading();
     try {
-      final result = await ref.read(authRepositoryProvider).verifyOtp(
+      final result = await ref.read(authRepositoryProvider).verifySignupOtp(
         requestId: requestId,
         otp: otp,
-        fullName: fullName,
       );
-      // Persist fake tokens so the router guard is satisfied in mock mode too
       await ref.read(tokenStorageProvider).saveTokens(
-        accessToken:  'access_${DateTime.now().millisecondsSinceEpoch}',
-        refreshToken: 'refresh_${DateTime.now().millisecondsSinceEpoch}',
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
       );
-      ref.read(currentUserProvider.notifier).state = result.user;
-      state = AuthSuccess(profile: result.user, isNewUser: result.isNewUser);
+      state = AuthSuccess(username: result.username);
     } catch (e) {
-      // Return to OTP entry state with inline error
-      final prev = state;
       if (prev is AuthOtpSent) {
         state = AuthOtpSent(
           requestId: prev.requestId,
-          maskedPhone: prev.maskedPhone,
-          isSignup: prev.isSignup,
+          maskedEmail: prev.maskedEmail,
+          username: prev.username,
+          email: prev.email,
+          age: prev.age,
+          gender: prev.gender,
           error: _message(e),
         );
       } else {
@@ -66,28 +93,7 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  void backToPhone() => state = const AuthIdle();
-
-  void clearError() {
-    final s = state;
-    if (s is AuthOtpSent) {
-      state = AuthOtpSent(
-        requestId: s.requestId,
-        maskedPhone: s.maskedPhone,
-        isSignup: s.isSignup,
-      );
-    } else {
-      state = const AuthIdle();
-    }
-  }
-
-  // Strip spaces, dashes; normalise 01X → +8801X
-  static String _normalisePhone(String raw) {
-    final digits = raw.replaceAll(RegExp(r'\D'), '');
-    if (digits.startsWith('880')) return '+$digits';
-    if (digits.startsWith('0'))   return '+880${digits.substring(1)}';
-    return '+880$digits';
-  }
+  void reset() => state = const AuthIdle();
 
   static String _message(Object e) => e.toString().replaceFirst('Exception: ', '');
 }
