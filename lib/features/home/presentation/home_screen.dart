@@ -520,13 +520,24 @@ import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
 import 'package:cardibee_flutter/features/offers/providers/offers_provider.dart';
 
 // ── Category metadata ─────────────────────────────────────────────────────────
+// const _categories =[
+//   (name: 'Food',          emoji: '🍽️', key: 'Food'),
+//   (name: 'Travel',        emoji: '✈️', key: 'Travel'),
+//   (name: 'Shopping',      emoji: '🛍️', key: 'Shopping'),
+//   (name: 'Groceries',     emoji: '🛒', key: 'Groceries'),
+//   (name: 'Entertainment', emoji: '🎬', key: 'Entertainment'),
+//   (name: 'Health',        emoji: '💊', key: 'Health'),
+// ];
+
 const _categories =[
-  (name: 'Food',          emoji: '🍽️', key: 'Food'),
-  (name: 'Travel',        emoji: '✈️', key: 'Travel'),
-  (name: 'Shopping',      emoji: '🛍️', key: 'Shopping'),
-  (name: 'Groceries',     emoji: '🛒', key: 'Groceries'),
-  (name: 'Entertainment', emoji: '🎬', key: 'Entertainment'),
-  (name: 'Health',        emoji: '💊', key: 'Health'),
+  (name: 'Food',          icon: Icons.restaurant,       key: 'Food'),
+  (name: 'Travel',        icon: Icons.flight,           key: 'Travel'),
+  (name: 'Shopping',      icon: Icons.shopping_bag,     key: 'Shopping'),
+  (name: 'Groceries',     icon: Icons.shopping_cart,    key: 'Groceries'),
+  (name: 'Entertainment', icon: Icons.movie,            key: 'Entertainment'),
+  (name: 'Health',        icon: Icons.medical_services, key: 'Health'),
+  (name: 'Hotel',        icon: Icons.night_shelter, key: 'Hotel'),
+  (name: 'Airport Lounge',        icon: Icons.chair, key: 'Lounge')
 ];
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -759,8 +770,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       SizedBox(height: tokens.s16),
                       GridView.count(
-                        crossAxisCount: 3,
-                        mainAxisSpacing: 12,
+                        crossAxisCount: 4,
+                        mainAxisSpacing: 8,
                         crossAxisSpacing: 12,
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -780,13 +791,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     width: 1,
                                   ),
                                 ),
+                                // child: Column(
+                                //   mainAxisAlignment: MainAxisAlignment.center,
+                                //   children:[
+                                //     // The inner container has been removed, leaving only the emoji Text widget
+                                //     Text(
+                                //       cat.emoji,
+                                //       style: const TextStyle(fontSize: 32), // You might want to increase the font size slightly (e.g. 32) since the box is gone
+                                //     ),
+                                //     const SizedBox(height: 10),
+                                //     Text(
+                                //       cat.name,
+                                //       style: TextStyle(
+                                //         fontFamily: AppFonts.sans,
+                                //         fontSize: 12,
+                                //         fontWeight: FontWeight.w500,
+                                //         color: isDark ? Colors.white : const Color(0xFF131B4D), 
+                                //         letterSpacing: -0.2,
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children:[
-                                    // The inner container has been removed, leaving only the emoji Text widget
-                                    Text(
-                                      cat.emoji,
-                                      style: const TextStyle(fontSize: 32), // You might want to increase the font size slightly (e.g. 32) since the box is gone
+                                    // Replace the Text emoji with the Icon widget
+                                    Icon(
+                                      cat.icon,
+                                      size: 32,
+                                      color: isDark ? const Color(0xFFF7B638) : Colors.black,
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
@@ -806,6 +839,90 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           );
                         }).toList(),
                       ),
+
+                      // Builder(
+                      //   builder: (context) {
+                      //     const int crossAxisCount = 4;
+                      //     const double mainAxisSpacing = 8.0;
+                      //     const double crossAxisSpacing = 12.0;
+                      //     final List<Widget> rows =[];
+
+                      //     // Chunk the categories list into rows based on crossAxisCount
+                      //     for (int i = 0; i < _categories.length; i += crossAxisCount) {
+                      //       final rowItems = _categories.skip(i).take(crossAxisCount).toList();
+
+                      //       rows.add(
+                      //         Row(
+                      //           children: rowItems.asMap().entries.map((entry) {
+                      //             final index = entry.key;
+                      //             final cat = entry.value;
+                      //             final isLast = index == rowItems.length - 1;
+
+                      //             return Expanded(
+                      //               child: Padding(
+                      //                 // Add right spacing to all items EXCEPT the last one in the row
+                      //                 padding: EdgeInsets.only(right: isLast ? 0 : crossAxisSpacing),
+                      //                 child: Semantics(
+                      //                   label: cat.name,
+                      //                   button: true,
+                      //                   child: GestureDetector(
+                      //                     onTap: () => context.go('${AppRoutes.browse}?cat=${cat.key}'),
+                      //                     child: Container(
+                      //                       // Fixed height is required here because we aren't using childAspectRatio anymore
+                      //                       height: 95, 
+                      //                       decoration: BoxDecoration(
+                      //                         color: isDark ? const Color(0xFF181B31) : Colors.white,
+                      //                         borderRadius: BorderRadius.circular(24),
+                      //                         border: Border.all(
+                      //                           color: isDark ? const Color(0xFF2A2E45) : const Color(0xFFE6E8F0), 
+                      //                           width: 1,
+                      //                         ),
+                      //                       ),
+                      //                       child: Column(
+                      //                         mainAxisAlignment: MainAxisAlignment.center,
+                      //                         children:[
+                      //                           Icon(
+                      //                             cat.icon,
+                      //                             size: 32,
+                      //                             color: isDark ? const Color(0xFFF7B638) : Colors.black,
+                      //                           ),
+                      //                           const SizedBox(height: 10),
+                      //                           Text(
+                      //                             cat.name,
+                      //                             style: TextStyle(
+                      //                               fontFamily: AppFonts.sans,
+                      //                               fontSize: 12,
+                      //                               fontWeight: FontWeight.w500,
+                      //                               color: isDark ? Colors.white : const Color(0xFF131B4D), 
+                      //                               letterSpacing: -0.2,
+                      //                             ),
+                      //                             maxLines: 1,
+                      //                             overflow: TextOverflow.ellipsis,
+                      //                           ),
+                      //                         ],
+                      //                       ),
+                      //                     ),
+                      //                   ),
+                      //                 ),
+                      //               ),
+                      //             );
+                      //           }).toList(),
+                      //         ),
+                      //       );
+                      //     }
+
+                      //     // Build the rows vertically with mainAxisSpacing
+                      //     return Column(
+                      //       children: rows.asMap().entries.map((entry) {
+                      //         final isLast = entry.key == rows.length - 1;
+                      //         return Padding(
+                      //           padding: EdgeInsets.only(bottom: isLast ? 0 : mainAxisSpacing),
+                      //           child: entry.value,
+                      //         );
+                      //       }).toList(),
+                      //     );
+                      //   },
+                      // ),
                     ],
                   ),
                 ),
