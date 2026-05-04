@@ -663,83 +663,153 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
 
                 // ── Categories ─────────────────────────────────────────────
+                // SliverToBoxAdapter(
+                //   child: Padding(
+                //     padding: EdgeInsets.fromLTRB(tokens.s20, tokens.s32, tokens.s20, 0),
+                //     child: Column(
+                //       crossAxisAlignment: CrossAxisAlignment.start,
+                //       children:[
+                //         Text(
+                //           'Browse by category', 
+                //           style: theme.textTheme.titleLarge?.copyWith(
+                //             fontWeight: FontWeight.w700,
+                //             color: isDark ? Colors.white : const Color(0xFF131B4D), 
+                //           ) ?? TextStyle(
+                //             fontSize: 20,
+                //             fontWeight: FontWeight.w700,
+                //             color: isDark ? Colors.white : const Color(0xFF131B4D),
+                //           ),
+                //         ),
+                //         SizedBox(height: tokens.s16),
+                //         GridView.count(
+                //           crossAxisCount: 3,
+                //           mainAxisSpacing: 12,
+                //           crossAxisSpacing: 12,
+                //           shrinkWrap: true,
+                //           physics: const NeverScrollableScrollPhysics(),
+                //           childAspectRatio: 0.95,
+                //           children: _categories.map((cat) {
+                //             return Semantics(
+                //               label: cat.name,
+                //               button: true,
+                //               child: GestureDetector(
+                //                 onTap: () => context.go('${AppRoutes.browse}?cat=${cat.key}'),
+                //                 child: Container(
+                //                   decoration: BoxDecoration(
+                //                     color: isDark ? const Color(0xFF181B31) : Colors.white,
+                //                     borderRadius: BorderRadius.circular(24),
+                //                     border: Border.all(
+                //                       color: isDark ? const Color(0xFF2A2E45) : const Color(0xFFE6E8F0), 
+                //                       width: 1,
+                //                     ),
+                //                   ),
+                //                   child: Column(
+                //                     mainAxisAlignment: MainAxisAlignment.center,
+                //                     children:[
+                //                       Container(
+                //                         width: 52, height: 52,
+                //                         decoration: BoxDecoration(
+                //                           color: isDark ? const Color(0xFF38312A) : const Color(0xFFFFF6E9), 
+                //                           borderRadius: BorderRadius.circular(16),
+                //                         ),
+                //                         alignment: Alignment.center,
+                //                         child: Text(
+                //                           cat.emoji,
+                //                           style: const TextStyle(fontSize: 24),
+                //                         ),
+                //                       ),
+                //                       const SizedBox(height: 10),
+                //                       Text(
+                //                         cat.name,
+                //                         style: TextStyle(
+                //                           fontFamily: AppFonts.sans,
+                //                           fontSize: 12,
+                //                           fontWeight: FontWeight.w500,
+                //                           color: isDark ? Colors.white : const Color(0xFF131B4D), 
+                //                           letterSpacing: -0.2,
+                //                         ),
+                //                       ),
+                //                     ],
+                //                   ),
+                //                 ),
+                //               ),
+                //             );
+                //           }).toList(),
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                // ),
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(tokens.s20, tokens.s32, tokens.s20, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children:[
-                        Text(
-                          'Browse by category', 
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : const Color(0xFF131B4D), 
-                          ) ?? TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : const Color(0xFF131B4D),
-                          ),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(tokens.s20, tokens.s32, tokens.s20, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children:[
+                      Text(
+                        'Browse by category', 
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF131B4D), 
+                        ) ?? TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF131B4D),
                         ),
-                        SizedBox(height: tokens.s16),
-                        GridView.count(
-                          crossAxisCount: 3,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          childAspectRatio: 0.95,
-                          children: _categories.map((cat) {
-                            return Semantics(
-                              label: cat.name,
-                              button: true,
-                              child: GestureDetector(
-                                onTap: () => context.go('${AppRoutes.browse}?cat=${cat.key}'),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF181B31) : Colors.white,
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(
-                                      color: isDark ? const Color(0xFF2A2E45) : const Color(0xFFE6E8F0), 
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children:[
-                                      Container(
-                                        width: 52, height: 52,
-                                        decoration: BoxDecoration(
-                                          color: isDark ? const Color(0xFF38312A) : const Color(0xFFFFF6E9), 
-                                          borderRadius: BorderRadius.circular(16),
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          cat.emoji,
-                                          style: const TextStyle(fontSize: 24),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        cat.name,
-                                        style: TextStyle(
-                                          fontFamily: AppFonts.sans,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          color: isDark ? Colors.white : const Color(0xFF131B4D), 
-                                          letterSpacing: -0.2,
-                                        ),
-                                      ),
-                                    ],
+                      ),
+                      SizedBox(height: tokens.s16),
+                      GridView.count(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        childAspectRatio: 0.95,
+                        children: _categories.map((cat) {
+                          return Semantics(
+                            label: cat.name,
+                            button: true,
+                            child: GestureDetector(
+                              onTap: () => context.go('${AppRoutes.browse}?cat=${cat.key}'),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF181B31) : Colors.white,
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: isDark ? const Color(0xFF2A2E45) : const Color(0xFFE6E8F0), 
+                                    width: 1,
                                   ),
                                 ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children:[
+                                    // The inner container has been removed, leaving only the emoji Text widget
+                                    Text(
+                                      cat.emoji,
+                                      style: const TextStyle(fontSize: 32), // You might want to increase the font size slightly (e.g. 32) since the box is gone
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      cat.name,
+                                      style: TextStyle(
+                                        fontFamily: AppFonts.sans,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark ? Colors.white : const Color(0xFF131B4D), 
+                                        letterSpacing: -0.2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ),
                 ),
+              ),
 
                 // ── Featured offers ────────────────────────────────────────
                 if (featured.isNotEmpty) ...[
@@ -974,7 +1044,7 @@ class _HeroCardState extends State<_HeroCard> {
           
           if (widget.cards.isNotEmpty)
             SizedBox(
-              height: 160, 
+              height: 192, 
               child: Padding(
                 padding: EdgeInsets.only(left: tokens.s24),
                 child: PageView.builder(
@@ -1009,7 +1079,7 @@ class _HeroCardState extends State<_HeroCard> {
                         padding: const EdgeInsets.only(right: 12.0),
                         child: CreditCardVisual(
                           card: widget.cards[index],
-                          size: CardSize.sm,
+                          size: CardSize.md,
                           onTap: widget.onViewCards,
                         ),
                       ),
