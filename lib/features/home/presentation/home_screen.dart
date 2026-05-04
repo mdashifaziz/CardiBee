@@ -758,7 +758,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children:[
                       Text(
-                        'Browse by category', 
+                        'Offers by category', 
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: isDark ? Colors.white : const Color(0xFF131B4D), 
@@ -771,8 +771,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       SizedBox(height: tokens.s16),
                       GridView.count(
                         crossAxisCount: 4,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 7,
+                        crossAxisSpacing: 6,
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         childAspectRatio: 0.95,
@@ -826,7 +826,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       cat.name,
                                       style: TextStyle(
                                         fontFamily: AppFonts.sans,
-                                        fontSize: 12,
+                                        fontSize: 11
+                                        ,
                                         fontWeight: FontWeight.w500,
                                         color: isDark ? Colors.white : const Color(0xFF131B4D), 
                                         letterSpacing: -0.2,
@@ -1133,7 +1134,8 @@ class _HeroCardState extends State<_HeroCard> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1C111), 
+                      // color: const Color(0xFFF1C111), 
+                      color: const Color(0xFFF7B638),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Row(
@@ -1161,7 +1163,7 @@ class _HeroCardState extends State<_HeroCard> {
           
           if (widget.cards.isNotEmpty)
             SizedBox(
-              height: 192, 
+              height: 160, 
               child: Padding(
                 padding: EdgeInsets.only(left: tokens.s24),
                 child: PageView.builder(
