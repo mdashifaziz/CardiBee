@@ -592,7 +592,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 // ── Header ────────────────────────────────────────────────
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(tokens.s20, tokens.s8, tokens.s20, 0),
+                    padding: EdgeInsets.fromLTRB(tokens.s16, tokens.s8, tokens.s16, 0),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children:[
@@ -631,7 +631,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 // ── Search bar ─────────────────────────────────────────────
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(tokens.s20, tokens.s16, tokens.s20, 0),
+                    padding: EdgeInsets.fromLTRB(tokens.s16, tokens.s16, tokens.s16, 0),
                     child: Semantics(
                       label: 'Search merchants, banks or offers',
                       button: true,
@@ -664,7 +664,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 // ── Hero wallet card ───────────────────────────────────────
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(tokens.s20, tokens.s20, tokens.s20, 0),
+                    padding: EdgeInsets.fromLTRB(tokens.s16, tokens.s24, tokens.s16, 0),
                     child: _HeroCard(
                       cards: cards,
                       activeOfferCount: _allOffers.length,
@@ -753,7 +753,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 // ),
                 SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(tokens.s20, tokens.s32, tokens.s20, 0),
+                  padding: EdgeInsets.fromLTRB(tokens.s16, tokens.s24, tokens.s16, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children:[
@@ -826,11 +826,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       cat.name,
                                       style: TextStyle(
                                         fontFamily: AppFonts.sans,
-                                        fontSize: 11
+                                        fontSize: 10
                                         ,
                                         fontWeight: FontWeight.w500,
                                         color: isDark ? Colors.white : const Color(0xFF131B4D), 
-                                        letterSpacing: -0.2,
+                                        letterSpacing: -0.25,
                                       ),
                                     ),
                                   ],
@@ -933,7 +933,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 if (featured.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(tokens.s20, tokens.s32, 0, tokens.s12),
+                      padding: EdgeInsets.fromLTRB(tokens.s16, tokens.s24, 0, tokens.s12),
                       child: Row(
                         children:[
                           Expanded(
@@ -948,7 +948,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           TextButton(
                             onPressed: () => context.go(AppRoutes.browse),
                             child: Padding(
-                              padding: EdgeInsets.only(right: tokens.s20),
+                              padding: EdgeInsets.only(right: tokens.s16),
                               child: const Text('See all'),
                             ),
                           ),
@@ -961,7 +961,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       height: 180,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        padding: EdgeInsets.symmetric(horizontal: tokens.s20),
+                        padding: EdgeInsets.symmetric(horizontal: tokens.s16),
                         itemCount: featured.length,
                         itemBuilder: (_, i) => Padding(
                           padding: EdgeInsets.only(right: tokens.s12),
@@ -979,7 +979,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 if (expiring.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(tokens.s20, tokens.s32, tokens.s20, tokens.s12),
+                      padding: EdgeInsets.fromLTRB(tokens.s16, tokens.s24, tokens.s16, tokens.s12),
                       child: Row(
                         children:[
                           Text(
@@ -1015,7 +1015,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                   SliverPadding(
-                    padding: EdgeInsets.fromLTRB(tokens.s20, 0, tokens.s20, tokens.s24),
+                    padding: EdgeInsets.fromLTRB(tokens.s16, 0, tokens.s16, tokens.s24),
                     sliver: SliverList.separated(
                       itemCount: expiring.length,
                       separatorBuilder: (_, __) => SizedBox(height: tokens.s8),
@@ -1070,12 +1070,26 @@ class _HeroCardState extends State<_HeroCard> {
   Widget build(BuildContext context) {
     final tokens = Theme.of(context).tokens;
 
+    // return Container(
+    //   padding: EdgeInsets.symmetric(vertical: tokens.s20),
+    //   decoration: BoxDecoration(
+    //     color: const Color(0xFF131B4D), // Deep navy exact color match
+    //     borderRadius: BorderRadius.circular(32), 
+    //     boxShadow: const[
+    //       BoxShadow(
+    //         color: Color(0x33000000),
+    //         blurRadius: 20,
+    //         offset: Offset(0, 8),
+    //         spreadRadius: -4,
+    //       ),
+    //     ],
+    //   ),
     return Container(
-      padding: EdgeInsets.symmetric(vertical: tokens.s24),
+      padding: EdgeInsets.symmetric(vertical: tokens.s20),
       decoration: BoxDecoration(
-        color: const Color(0xFF131B4D), // Deep navy exact color match
-        borderRadius: BorderRadius.circular(32), 
-        boxShadow: const[
+        gradient: tokens.gradientHero,
+        borderRadius: tokens.brXl,
+        boxShadow: const [
           BoxShadow(
             color: Color(0x33000000),
             blurRadius: 20,
