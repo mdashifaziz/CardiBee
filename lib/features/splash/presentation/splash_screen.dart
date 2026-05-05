@@ -59,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                     alignment: Alignment.center,
                     child: Image.asset(
-                      'assets/images/cardibee-mark.webp',
+                      'assets/images/cardibee_logo.png',
                       width: 72,
                       height: 72,
                     ),

@@ -31,6 +31,8 @@ class UserProfile {
     required this.fullName,
     required this.phone,
     this.email,
+    this.username,
+    this.age,
     this.language = 'en',
     this.avatarUrl,
     this.savingsYtdBdt = 0,
@@ -40,8 +42,10 @@ class UserProfile {
 
   final String id;
   final String fullName;
-  final String phone;      // masked E.164 e.g. '+880 17XX XXXX 71'
+  final String phone;
   final String? email;
+  final String? username;
+  final int? age;
   final String language;
   final String? avatarUrl;
   final int savingsYtdBdt;
@@ -59,6 +63,8 @@ class UserProfile {
     fullName:       j['full_name'] as String,
     phone:          j['phone'] as String,
     email:          j['email'] as String?,
+    username:       j['username'] as String?,
+    age:            j['age'] as int?,
     language:       j['language'] as String? ?? 'en',
     avatarUrl:      j['avatar_url'] as String?,
     savingsYtdBdt:  j['savings_ytd_bdt'] as int? ?? 0,
@@ -66,11 +72,20 @@ class UserProfile {
     subscription:   SubscriptionStatus.fromJson(j['subscription'] as Map<String, dynamic>),
   );
 
-  UserProfile copyWith({String? fullName, String? email, String? language}) => UserProfile(
+  UserProfile copyWith({
+    String? fullName,
+    String? phone,
+    String? email,
+    String? username,
+    int? age,
+    String? language,
+  }) => UserProfile(
     id: id,
     fullName: fullName ?? this.fullName,
-    phone: phone,
+    phone: phone ?? this.phone,
     email: email ?? this.email,
+    username: username ?? this.username,
+    age: age ?? this.age,
     language: language ?? this.language,
     avatarUrl: avatarUrl,
     savingsYtdBdt: savingsYtdBdt,

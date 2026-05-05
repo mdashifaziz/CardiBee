@@ -74,6 +74,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Column(
           children: [
             // Top bar
+            // Padding(
+            //   padding: EdgeInsets.symmetric(horizontal: tokens.s20, vertical: tokens.s8),
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //     children: [
+            //       Row(
+            //         children: [
+            //           Image.asset('assets/images/cardibee_text.png', width: 28, height: 28),
+            //           const SizedBox(width: 8),
+            //           RichText(
+            //             text: TextSpan(
+            //               style: TextStyle(fontFamily: AppFonts.display, fontSize: 18, fontWeight: FontWeight.w700, color: cs.onSurface),
+            //               children: [
+            //                 const TextSpan(text: 'Cardi'),
+            //                 TextSpan(text: 'Bee', style: TextStyle(color: cs.tertiary)),
+            //               ],
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //       TextButton(
+            //         onPressed: () => context.go(AppRoutes.auth),
+            //         child: Text('Skip', style: theme.textTheme.labelMedium?.copyWith(color: cs.onSurfaceVariant)),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+
+            // Top bar
             Padding(
               padding: EdgeInsets.symmetric(horizontal: tokens.s20, vertical: tokens.s8),
               child: Row(
@@ -81,14 +110,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   Row(
                     children: [
-                      Image.asset('assets/images/cardibee-mark.webp', width: 28, height: 28),
-                      const SizedBox(width: 8),
+                      // 1. Use ONLY the logo icon asset here
+                      Image.asset(
+                        'assets/images/cardibee_logo_2.png', // Change this to your icon-only file
+                        width: 32, 
+                        height: 32,
+                      ),
+                      const SizedBox(width: 10),
+                      // 2. This creates the "CardiBee" text with two colors
                       RichText(
                         text: TextSpan(
-                          style: TextStyle(fontFamily: AppFonts.display, fontSize: 18, fontWeight: FontWeight.w700, color: cs.onSurface),
+                          style: TextStyle(
+                            fontFamily: AppFonts.display, 
+                            fontSize: 20, // Increased size slightly for better visibility
+                            fontWeight: FontWeight.w700, 
+                            color: cs.onSurface,
+                          ),
                           children: [
                             const TextSpan(text: 'Cardi'),
-                            TextSpan(text: 'Bee', style: TextStyle(color: cs.tertiary)),
+                            TextSpan(
+                              text: 'Bee', 
+                              style: TextStyle(color: cs.tertiary),
+                            ),
                           ],
                         ),
                       ),
@@ -96,7 +139,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   TextButton(
                     onPressed: () => context.go(AppRoutes.auth),
-                    child: Text('Skip', style: theme.textTheme.labelMedium?.copyWith(color: cs.onSurfaceVariant)),
+                    child: Text(
+                      'Skip', 
+                      style: theme.textTheme.labelMedium?.copyWith(color: cs.onSurfaceVariant),
+                    ),
                   ),
                 ],
               ),

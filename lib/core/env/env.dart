@@ -11,9 +11,9 @@ abstract final class Env {
 
   static String get apiBaseUrl {
     return switch (_env) {
-      'prod'    => 'https://api.cardibee.com.bd/v1',
-      'staging' => 'https://api-staging.cardibee.com.bd/v1',
-      _         => 'https://api-dev.cardibee.com.bd/v1',
+      'prod'    => 'https://motosnapai-production.up.railway.app/',
+      'staging' => 'https://motosnapai-production.up.railway.app/',
+      _         => 'https://motosnapai-production.up.railway.app/',
     };
   }
 

@@ -40,7 +40,7 @@ Future<void> main() async {
   UserProfile? mockUser;
   if (Env.useMockApi) {
     // Mark onboarding done so the router never redirects to /onboarding.
-    await prefs.setBool('cardibee_onboarded', true);
+    await prefs.setBool('cardibee_onboarded', false);
 
     // Write a fake refresh token so hasTokens() returns true.
     const _storage = FlutterSecureStorage();

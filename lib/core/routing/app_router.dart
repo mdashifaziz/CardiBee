@@ -5,6 +5,8 @@ import 'package:cardibee_flutter/core/routing/app_routes.dart';
 import 'package:cardibee_flutter/core/storage/token_storage.dart';
 import 'package:cardibee_flutter/core/storage/prefs_storage.dart';
 import 'package:cardibee_flutter/features/auth/presentation/auth_screen.dart';
+import 'package:cardibee_flutter/features/auth/presentation/signup_screen.dart';
+import 'package:cardibee_flutter/features/auth/presentation/otp_screen.dart';
 import 'package:cardibee_flutter/features/auth/providers/auth_provider.dart';
 import 'package:cardibee_flutter/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:cardibee_flutter/features/splash/presentation/splash_screen.dart';
@@ -23,8 +25,7 @@ import 'package:cardibee_flutter/features/subscription/presentation/subscription
 import 'package:cardibee_flutter/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // React to auth state changes (triggers router refresh)
-  final isAuthenticated = ref.watch(isAuthenticatedProvider);
+  ref.watch(isAuthenticatedProvider);
   final notifier = _RefreshListenable();
 
   return GoRouter(
@@ -42,7 +43,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final isPreAuth = location == AppRoutes.splash ||
           location == AppRoutes.onboarding ||
-          location == AppRoutes.auth;
+          location == AppRoutes.auth ||
+          location == AppRoutes.signup ||
+          location == AppRoutes.otp;
 
       if (!onboarded && !isPreAuth) return AppRoutes.onboarding;
       if (!authed   && !isPreAuth) return AppRoutes.auth;
@@ -51,13 +54,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: AppRoutes.splash,     builder: (_, __) => const SplashScreen()),
       GoRoute(path: AppRoutes.onboarding, builder: (_, __) => const OnboardingScreen()),
-      GoRoute(
-        path: AppRoutes.auth,
-        builder: (_, state) {
-          final mode = state.uri.queryParameters['mode'] ?? 'signup';
-          return AuthScreen(initialMode: mode);
-        },
-      ),
+      GoRoute(path: AppRoutes.auth,       builder: (_, __) => const AuthScreen()),
+      GoRoute(path: AppRoutes.signup,     builder: (_, __) => const SignupScreen()),
+      GoRoute(path: AppRoutes.otp,        builder: (_, __) => const OtpScreen()),
 
       // Bottom-nav shell — all /app/* sub-routes
       ShellRoute(

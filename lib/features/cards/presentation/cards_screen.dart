@@ -70,7 +70,7 @@ class CardsScreen extends ConsumerWidget {
                     label: const Text('Add card'),
                     style: FilledButton.styleFrom(
                       backgroundColor: cs.primary,
-                      foregroundColor: cs.onPrimary,
+                      foregroundColor: cs.onPrimary, 
                       elevation: 4,
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                       shape: const StadiumBorder(),
@@ -100,7 +100,8 @@ class _CardTile extends ConsumerWidget {
     return Column(
       children: [
         // Card visual — tappable to view offers
-        Center(
+        FittedBox(
+          fit: BoxFit.scaleDown,
           child: CreditCardVisual(
             card: card,
             size: CardSize.lg,
@@ -197,3 +198,5 @@ class _CardTile extends ConsumerWidget {
     }
   }
 }
+
+
