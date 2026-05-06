@@ -94,7 +94,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
             )
           else
             SizedBox(
-              height: 248, // 2 × 120 (CardSize.sm) + 8 gap
+              height: 256, // 2 × 120 (CardSize.sm) + 8 gap
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.symmetric(horizontal: tokens.s20),
@@ -278,7 +278,7 @@ class _OneCardState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CreditCardVisual(card: card, size: CardSize.sm),
+            CreditCardVisual(card: card, size: CardSize.md),
             SizedBox(height: tokens.s16),
             Text(
               'Now pick one more card',
