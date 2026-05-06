@@ -16,7 +16,7 @@ AppFailure mapDioError(DioException e) {
   final body      = e.response?.data;
   final serverMsg = _extractMessage(body);
 
-  return switch (status) {
+  return switch (status ?? 0) {
     400  => _handle400(body, serverMsg),
     401  => const UnauthorizedFailure(),
     403  => _handle403(body, serverMsg),

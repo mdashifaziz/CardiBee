@@ -255,11 +255,12 @@ class ProfileScreen extends ConsumerWidget {
     int cardCount,
   ) => [
     (Icons.credit_card_rounded,       'My cards',           '$cardCount', () => context.go(AppRoutes.cards)),
+    (Icons.compare_arrows_rounded,    'Compare cards',      null,         () => context.push(AppRoutes.compare)),
     (Icons.favorite_border_rounded,   'Favorites',          null,         () => context.push(AppRoutes.favorites)),
     (Icons.notifications_outlined,    'Notifications',      null,         () => context.push(AppRoutes.notifications)),
     (Icons.shield_outlined,           'Privacy & security', null,         null),
-    (Icons.description_outlined,      'Terms of service',   null,         null),
-    (Icons.info_outline_rounded,      'About CardiBee',     null,         null),
+    (Icons.description_outlined,      'Terms of service',   null,         () => context.push(AppRoutes.terms)),
+    (Icons.info_outline_rounded,      'About CardiBee',     null,         () => context.push(AppRoutes.about)),
   ];
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {

@@ -1,6 +1,5 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cardibee_flutter/core/network/dio_client.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_provider.dart';
 
@@ -44,7 +43,7 @@ class CardsNotifier extends AsyncNotifier<List<UserCard>> {
   }
 }
 
-// ── Static bank/card-type data for AddCard wizard ────────────────────────────
+// ── Bank / card-type models for AddCard wizard ────────────────────────────────
 
 class BankInfo {
   const BankInfo({required this.id, required this.name, required this.shortCode});
@@ -68,25 +67,82 @@ class CardTypeInfo {
   final String defaultType;
 }
 
-final banksProvider = FutureProvider<List<BankInfo>>((ref) async {
-  final raw  = await rootBundle.loadString('lib/mock/fixtures/banks.json');
-  final list = json.decode(raw) as List<dynamic>;
-  return list.map((e) => BankInfo(
-    id:        e['id'] as String,
-    name:      e['name'] as String,
-    shortCode: e['short_code'] as String,
-  )).toList();
-});
+// ── Paginated banks notifier ──────────────────────────────────────────────────
 
-final cardTypesProvider = FutureProvider.family<List<CardTypeInfo>, String>((ref, bankId) async {
-  final raw = await rootBundle.loadString('lib/mock/fixtures/card_types.json');
-  final map = json.decode(raw) as Map<String, dynamic>;
-  final list = (map[bankId] as List<dynamic>?) ?? [];
-  return list.map((e) => CardTypeInfo(
-    id:          e['id'] as String,
-    bankId:      bankId,
-    productName: e['product_name'] as String,
-    network:     e['network'] as String,
-    defaultType: e['default_type'] as String,
-  )).toList();
+class BanksNotifier extends AsyncNotifier<List<BankInfo>> {
+  static const _pageLimit = 20;
+  String? _cursor;
+  bool _hasMore = true;
+
+  bool get hasMore => _hasMore;
+
+  @override
+  Future<List<BankInfo>> build() async {
+    _cursor = null;
+    _hasMore = true;
+    return _fetchPage();
+  }
+
+  Future<void> loadMore() async {
+    if (!_hasMore || state.isLoading) return;
+    final current = state.valueOrNull ?? [];
+    state = await AsyncValue.guard(() async {
+      final more = await _fetchPage();
+      return [...current, ...more];
+    });
+  }
+
+  Future<List<BankInfo>> _fetchPage() async {
+    final dio = ref.read(dioProvider);
+    final res = await dio.get<dynamic>('/banks', queryParameters: {
+      'limit': _pageLimit,
+      if (_cursor != null) 'cursor': _cursor,
+    });
+    final raw = res.data;
+    List<dynamic> items;
+    if (raw is List) {
+      items = raw;
+      _cursor = null;
+      _hasMore = false;
+    } else {
+      final m = raw as Map<String, dynamic>;
+      items = (m['data'] ?? m['items'] ?? const <dynamic>[]) as List<dynamic>;
+      _cursor = m['next_cursor'] as String?;
+      _hasMore = _cursor != null;
+    }
+    return items
+        .map((e) => BankInfo(
+              id:        e['id'] as String,
+              name:      e['name'] as String,
+              shortCode: e['short_code'] as String,
+            ))
+        .toList();
+  }
+}
+
+final banksProvider =
+    AsyncNotifierProvider<BanksNotifier, List<BankInfo>>(BanksNotifier.new);
+
+// ── Card types per bank ───────────────────────────────────────────────────────
+
+final cardTypesProvider =
+    FutureProvider.family<List<CardTypeInfo>, String>((ref, bankId) async {
+  final dio = ref.read(dioProvider);
+  final res = await dio.get<dynamic>('/banks/$bankId/card-types');
+  final raw = res.data;
+  final list = raw is List
+      ? raw
+      : ((raw as Map<String, dynamic>)['data'] ??
+              raw['items'] ??
+              const <dynamic>[])
+          as List<dynamic>;
+  return list
+      .map((e) => CardTypeInfo(
+            id:          e['id'] as String,
+            bankId:      bankId,
+            productName: e['product_name'] as String,
+            network:     e['network'] as String,
+            defaultType: (e['type'] ?? e['default_type'] ?? 'credit') as String,
+          ))
+      .toList();
 });

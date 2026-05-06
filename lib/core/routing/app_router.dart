@@ -22,6 +22,8 @@ import 'package:cardibee_flutter/features/best_card/presentation/best_card_scree
 import 'package:cardibee_flutter/features/compare/presentation/compare_screen.dart';
 import 'package:cardibee_flutter/features/notifications/presentation/notifications_screen.dart';
 import 'package:cardibee_flutter/features/subscription/presentation/subscription_screen.dart';
+import 'package:cardibee_flutter/features/terms/presentation/terms_screen.dart';
+import 'package:cardibee_flutter/features/about/presentation/about_screen.dart';
 import 'package:cardibee_flutter/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -91,6 +93,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.compare,       builder: (_, __) => const CompareScreen()),
       GoRoute(path: AppRoutes.notifications, builder: (_, __) => const NotificationsScreen()),
       GoRoute(path: AppRoutes.subscription,  builder: (_, __) => const SubscriptionScreen()),
+      GoRoute(path: AppRoutes.terms,         builder: (_, __) => const TermsScreen()),
+      GoRoute(path: AppRoutes.about,         builder: (_, __) => const AboutScreen()),
     ],
   );
 });

@@ -12,6 +12,7 @@ import 'package:cardibee_flutter/core/env/env.dart';
 import 'package:cardibee_flutter/features/auth/domain/models/user_profile.dart';
 import 'package:cardibee_flutter/features/auth/providers/auth_provider.dart';
 import 'package:cardibee_flutter/mock/mock_module.dart';
+import 'package:cardibee_flutter/api/api_module.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,7 +63,8 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         prefsStorageProvider.overrideWithValue(PrefsStorage(prefs)),
-        if (Env.useMockApi) ...MockModule.overrides,
+        if (Env.useMockApi)  ...MockModule.overrides,
+        if (!Env.useMockApi) ...ApiModule.overrides,
         // Pre-seed the current user so isAuthenticatedProvider is true immediately.
         if (mockUser != null)
           currentUserProvider.overrideWith((ref) => mockUser),

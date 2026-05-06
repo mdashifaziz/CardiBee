@@ -93,44 +93,52 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
               ),
             )
           else
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: tokens.s20),
-              child: Row(
-                children: cards.map((card) {
-                  final isSelected = _selected.any((c) => c.id == card.id);
-                  final isDisabled = !isSelected && _selected.length >= 2;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: GestureDetector(
-                      onTap: isDisabled ? null : () => _toggle(card),
-                      child: AnimatedContainer(
-                        duration: tokens.durationFast,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: isSelected ? cs.primary : cs.surfaceContainerLowest,
-                          borderRadius: tokens.brFull,
-                          border: Border.all(
-                            color: isSelected ? cs.primary : cs.outlineVariant,
-                          ),
-                          boxShadow: isSelected ? tokens.shadowSm : null,
+            SizedBox(
+              height: 248, // 2 × 120 (CardSize.sm) + 8 gap
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: tokens.s20),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: List.generate(
+                    (cards.length / 2).ceil(),
+                    (colIdx) {
+                      final top    = cards[colIdx * 2];
+                      final bottom = colIdx * 2 + 1 < cards.length
+                          ? cards[colIdx * 2 + 1]
+                          : null;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _CardSelectItem(
+                              card: top,
+                              isSelected: _selected.any((c) => c.id == top.id),
+                              isDisabled: !_selected.any((c) => c.id == top.id) &&
+                                  _selected.length >= 2,
+                              onTap: () => _toggle(top),
+                              tokens: tokens,
+                            ),
+                            if (bottom != null) ...[
+                              const SizedBox(height: 8),
+                              _CardSelectItem(
+                                card: bottom,
+                                isSelected:
+                                    _selected.any((c) => c.id == bottom.id),
+                                isDisabled:
+                                    !_selected.any((c) => c.id == bottom.id) &&
+                                        _selected.length >= 2,
+                                onTap: () => _toggle(bottom),
+                                tokens: tokens,
+                              ),
+                            ],
+                          ],
                         ),
-                        child: Text(
-                          card.displayName,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: isSelected
-                                ? cs.onPrimary
-                                : isDisabled
-                                    ? cs.onSurfaceVariant
-                                    : cs.onSurface,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           SizedBox(height: tokens.s16),
@@ -150,6 +158,71 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Card selector item ────────────────────────────────────────────────────────
+
+class _CardSelectItem extends StatelessWidget {
+  const _CardSelectItem({
+    required this.card,
+    required this.isSelected,
+    required this.isDisabled,
+    required this.onTap,
+    required this.tokens,
+  });
+
+  final UserCard card;
+  final bool isSelected;
+  final bool isDisabled;
+  final VoidCallback onTap;
+  final CardiBeeTokens tokens;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: isDisabled ? null : onTap,
+      child: AnimatedOpacity(
+        opacity: isDisabled ? 0.4 : 1.0,
+        duration: tokens.durationFast,
+        child: Stack(
+          children: [
+            CreditCardVisual(card: card, size: CardSize.sm),
+            if (isSelected)
+              Positioned.fill(
+                child: AnimatedContainer(
+                  duration: tokens.durationFast,
+                  decoration: BoxDecoration(
+                    borderRadius: tokens.brLg,
+                    border: Border.all(
+                      color: AppColors.beeYellow,
+                      width: 3,
+                    ),
+                  ),
+                ),
+              ),
+            if (isSelected)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  width: 22,
+                  height: 22,
+                  decoration: const BoxDecoration(
+                    color: AppColors.beeYellow,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    size: 14,
+                    color: AppColors.navyDeep,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

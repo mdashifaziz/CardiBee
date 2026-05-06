@@ -21,6 +21,8 @@ abstract final class AppRoutes {
   static const String compare       = '/app/compare';
   static const String notifications = '/app/notifications';
   static const String subscription  = '/app/subscription';
+  static const String terms         = '/app/terms';
+  static const String about         = '/app/about';
 
   static String offerDetailPath(String id) => '/app/offer/$id';
 }

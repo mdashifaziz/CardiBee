@@ -669,6 +669,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       cards: cards,
                       activeOfferCount: _allOffers.length,
                       onViewCards: () => context.go(AppRoutes.cards),
+                      onCompare: () => context.push(AppRoutes.compare),
                     ),
                   ),
                 ),
@@ -1040,11 +1041,13 @@ class _HeroCard extends StatefulWidget {
     required this.cards,
     required this.activeOfferCount,
     required this.onViewCards,
+    required this.onCompare,
   });
 
   final List<UserCard> cards;
   final int activeOfferCount;
   final VoidCallback onViewCards;
+  final VoidCallback onCompare;
 
   @override
   State<_HeroCard> createState() => _HeroCardState();
@@ -1143,32 +1146,64 @@ class _HeroCardState extends State<_HeroCard> {
                     ],
                   ),
                 ),
-                GestureDetector(
-                  onTap: widget.onViewCards,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      // color: const Color(0xFFF1C111), 
-                      color: const Color(0xFFF7B638),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children:[
-                        const Text(
-                          'View',
-                          style: TextStyle(
-                            fontFamily: AppFonts.sans,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF131B4D),
-                          ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: widget.onCompare,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: Colors.white.withOpacity(0.3)),
                         ),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF131B4D)),
-                      ],
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.compare_arrows_rounded, size: 13, color: Colors.white),
+                            SizedBox(width: 4),
+                            Text(
+                              'Compare',
+                              style: TextStyle(
+                                fontFamily: AppFonts.sans,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: widget.onViewCards,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF7B638),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'View',
+                              style: TextStyle(
+                                fontFamily: AppFonts.sans,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF131B4D),
+                              ),
+                            ),
+                            SizedBox(width: 4),
+                            Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF131B4D)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
