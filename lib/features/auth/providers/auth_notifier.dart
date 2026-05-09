@@ -12,19 +12,19 @@ class AuthNotifier extends Notifier<AuthState> {
   AuthState build() => const AuthIdle();
 
   Future<void> login({
-    required String usernameOrEmail,
+    required String username,
     required String password,
   }) async {
     state = const AuthLoading();
     try {
       final result = await ref.read(authRepositoryProvider).login(
-        usernameOrEmail: usernameOrEmail,
-        password: password,
-      );
+            username: username,
+            password: password,
+          );
       await ref.read(tokenStorageProvider).saveTokens(
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-      );
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+          );
       state = AuthSuccess(username: result.username);
     } on AuthNewUserException {
       state = const AuthNewUser();
@@ -33,25 +33,24 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<void> requestSignupOtp({
+  Future<void> sendOtp({
+    required String contact,
+    required String fullName,
     required String username,
-    required String email,
-    required int age,
+    required String password,
+    required int groupId,
+    required String age,
     required String gender,
   }) async {
     state = const AuthLoading();
     try {
-      final result = await ref.read(authRepositoryProvider).requestSignupOtp(
-        username: username,
-        email: email,
-        age: age,
-        gender: gender,
-      );
+      await ref.read(authRepositoryProvider).sendOtp(contact);
       state = AuthOtpSent(
-        requestId: result.requestId,
-        maskedEmail: result.maskedEmail,
+        contact: contact,
+        fullName: fullName,
         username: username,
-        email: email,
+        password: password,
+        groupId: groupId,
         age: age,
         gender: gender,
       );
@@ -60,40 +59,33 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<void> verifySignupOtp({
-    required String requestId,
-    required String otp,
-  }) async {
+  Future<void> verifyOtpAndSignup(String otp) async {
     final prev = state;
+    if (prev is! AuthOtpSent) return;
     state = const AuthLoading();
     try {
-      final result = await ref.read(authRepositoryProvider).verifySignupOtp(
-        requestId: requestId,
-        otp: otp,
-      );
+      final result = await ref.read(authRepositoryProvider).verifyOtpAndSignup(
+            contact: prev.contact,
+            otp: otp,
+            fullName: prev.fullName,
+            username: prev.username,
+            password: prev.password,
+            groupId: prev.groupId,
+            age: prev.age,
+            gender: prev.gender,
+          );
       await ref.read(tokenStorageProvider).saveTokens(
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-      );
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+          );
       state = AuthSuccess(username: result.username);
     } catch (e) {
-      if (prev is AuthOtpSent) {
-        state = AuthOtpSent(
-          requestId: prev.requestId,
-          maskedEmail: prev.maskedEmail,
-          username: prev.username,
-          email: prev.email,
-          age: prev.age,
-          gender: prev.gender,
-          error: _message(e),
-        );
-      } else {
-        state = AuthError(_message(e));
-      }
+      state = prev.withError(_message(e));
     }
   }
 
   void reset() => state = const AuthIdle();
 
-  static String _message(Object e) => e.toString().replaceFirst('Exception: ', '');
+  static String _message(Object e) =>
+      e.toString().replaceFirst('Exception: ', '');
 }

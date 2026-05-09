@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cardibee_flutter/core/network/api_endpoints.dart';
 import 'package:cardibee_flutter/core/network/dio_client.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_provider.dart';
@@ -94,7 +95,7 @@ class BanksNotifier extends AsyncNotifier<List<BankInfo>> {
 
   Future<List<BankInfo>> _fetchPage() async {
     final dio = ref.read(dioProvider);
-    final res = await dio.get<dynamic>('/banks', queryParameters: {
+    final res = await dio.get<dynamic>(ApiEndpoints.banks, queryParameters: {
       'limit': _pageLimit,
       if (_cursor != null) 'cursor': _cursor,
     });
@@ -128,7 +129,7 @@ final banksProvider =
 final cardTypesProvider =
     FutureProvider.family<List<CardTypeInfo>, String>((ref, bankId) async {
   final dio = ref.read(dioProvider);
-  final res = await dio.get<dynamic>('/banks/$bankId/card-types');
+  final res = await dio.get<dynamic>(ApiEndpoints.bankCardTypes(bankId));
   final raw = res.data;
   final list = raw is List
       ? raw

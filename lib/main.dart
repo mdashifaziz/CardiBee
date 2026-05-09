@@ -29,9 +29,14 @@ Future<void> main() async {
     statusBarIconBrightness: Brightness.dark,
   ));
 
-  // Firebase (skip in mock-only mode to avoid needing google-services.json)
+  // Firebase — used for push notifications only; app works without it.
+  // Skipped in mock mode and gracefully degraded if config file is missing.
   if (!Env.useMockApi) {
-    await Firebase.initializeApp();
+    try {
+      await Firebase.initializeApp();
+    } catch (e) {
+      debugPrint('[CardiBee] Firebase init skipped: $e');
+    }
   }
 
   // SharedPreferences must be initialised before the provider scope

@@ -15,28 +15,41 @@ class AuthError extends AuthState {
   final String message;
 }
 
-/// API code 101 — no account exists for this identifier.
 class AuthNewUser extends AuthState {
   const AuthNewUser();
 }
 
 class AuthOtpSent extends AuthState {
   const AuthOtpSent({
-    required this.requestId,
-    required this.maskedEmail,
+    required this.contact,
+    required this.fullName,
     required this.username,
-    required this.email,
+    required this.password,
+    required this.groupId,
     required this.age,
     required this.gender,
     this.error,
   });
-  final String requestId;
-  final String maskedEmail;
+
+  final String contact;
+  final String fullName;
   final String username;
-  final String email;
-  final int age;
+  final String password;
+  final int groupId;
+  final String age;
   final String gender;
   final String? error;
+
+  AuthOtpSent withError(String msg) => AuthOtpSent(
+        contact: contact,
+        fullName: fullName,
+        username: username,
+        password: password,
+        groupId: groupId,
+        age: age,
+        gender: gender,
+        error: msg,
+      );
 }
 
 class AuthSuccess extends AuthState {

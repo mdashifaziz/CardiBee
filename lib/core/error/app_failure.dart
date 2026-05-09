@@ -67,6 +67,14 @@ final class CardLimitFailure extends AppFailure {
   String get displayMessage => message;
 }
 
+final class ServerSleepingFailure extends AppFailure {
+  const ServerSleepingFailure(
+      [this.message = 'Server is sleeping. Please try again in a moment.']);
+  final String message;
+  @override
+  String get displayMessage => message;
+}
+
 final class UnknownFailure extends AppFailure {
   const UnknownFailure([this.message = 'An unexpected error occurred.']);
   final String message;

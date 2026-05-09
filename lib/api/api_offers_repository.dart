@@ -32,8 +32,8 @@ final class ApiOffersRepository implements OffersRepository {
         if (cursor != null) 'cursor': cursor,
       });
       return _parsePage(res.data);
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
@@ -42,8 +42,8 @@ final class ApiOffersRepository implements OffersRepository {
     try {
       final res = await _dio.get<dynamic>('/offers/$offerId');
       return Offer.fromJson(_patchOffer(_unwrapSingle(res.data)));
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
@@ -51,8 +51,8 @@ final class ApiOffersRepository implements OffersRepository {
   Future<void> saveOffer(String offerId) async {
     try {
       await _dio.post<void>('/offers/$offerId/save');
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
@@ -60,8 +60,8 @@ final class ApiOffersRepository implements OffersRepository {
   Future<void> unsaveOffer(String offerId) async {
     try {
       await _dio.delete<void>('/offers/$offerId/save');
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
@@ -76,8 +76,8 @@ final class ApiOffersRepository implements OffersRepository {
         if (cursor != null) 'cursor': cursor,
       });
       return _parsePage(res.data);
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 

@@ -3,6 +3,7 @@
         android:label="cardibee_flutter"
         android:name="${applicationName}"
         android:icon="@mipmap/app_logo">
+        android:usesCleartextTraffic="true"   <!-- remove in dev/live -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

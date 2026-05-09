@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:cardibee_flutter/core/network/api_endpoints.dart';
 import 'package:cardibee_flutter/core/network/error_mapper.dart';
 import 'package:cardibee_flutter/features/cards/domain/cards_repository.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
@@ -10,12 +11,12 @@ final class ApiCardsRepository implements CardsRepository {
   @override
   Future<List<UserCard>> listCards() async {
     try {
-      final res = await _dio.get<dynamic>('/cards');
+      final res = await _dio.get<dynamic>(ApiEndpoints.cards);
       return _unwrapList(res.data)
           .map((e) => UserCard.fromJson(e as Map<String, dynamic>))
           .toList();
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
@@ -29,7 +30,7 @@ final class ApiCardsRepository implements CardsRepository {
     required String gradient,
   }) async {
     try {
-      final res = await _dio.post<dynamic>('/cards', data: {
+      final res = await _dio.post<dynamic>(ApiEndpoints.cards, data: {
         'bank_id': bankId,
         'card_type_id': cardTypeId,
         'type': type,
@@ -38,8 +39,8 @@ final class ApiCardsRepository implements CardsRepository {
         if (lastDigits != null) 'last_digits': lastDigits,
       });
       return UserCard.fromJson(_unwrapSingle(res.data));
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
@@ -51,32 +52,32 @@ final class ApiCardsRepository implements CardsRepository {
     bool? isDefault,
   }) async {
     try {
-      final res = await _dio.patch<dynamic>('/cards/$cardId', data: {
+      final res = await _dio.patch<dynamic>('${ApiEndpoints.cards}$cardId/', data: {
         if (nickname != null) 'nickname': nickname,
         if (gradient != null) 'gradient': gradient,
         if (isDefault != null) 'is_default': isDefault,
       });
       return UserCard.fromJson(_unwrapSingle(res.data));
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
   @override
   Future<void> deleteCard(String cardId) async {
     try {
-      await _dio.delete<void>('/cards/$cardId');
-    } on DioException catch (e) {
-      throw mapDioError(e);
+      await _dio.delete<void>('${ApiEndpoints.cards}$cardId/');
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
   @override
   Future<void> setDefaultCard(String cardId) async {
     try {
-      await _dio.post<void>('/cards/$cardId/default');
-    } on DioException catch (e) {
-      throw mapDioError(e);
+      await _dio.post<void>('${ApiEndpoints.cards}$cardId/default/');
+    } catch (e) {
+      throw mapError(e);
     }
   }
 

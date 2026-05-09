@@ -15,49 +15,45 @@ final class MockAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<({String accessToken, String refreshToken, String username})> login({
-    required String usernameOrEmail,
-    required String password,
-  }) async {
+  Future<void> sendOtp(String contact) async {
     await Future.delayed(const Duration(milliseconds: 600));
-    if (password != '123456') throw Exception('Wrong password.');
-    final isKnown = usernameOrEmail == 'admin' ||
-        usernameOrEmail == 'admin@cardibee.app';
-    if (!isKnown) throw const AuthNewUserException();
-    return (
-      accessToken:  'mock_access_${DateTime.now().millisecondsSinceEpoch}',
-      refreshToken: 'mock_refresh_${DateTime.now().millisecondsSinceEpoch}',
-      username:     'admin',
-    );
+    // Mock: always succeeds
   }
 
   @override
-  Future<({String requestId, String maskedEmail})> requestSignupOtp({
-    required String username,
-    required String email,
-    required int age,
-    required String gender,
-  }) async {
-    await Future.delayed(const Duration(milliseconds: 600));
-    final at = email.indexOf('@');
-    final masked = at > 1 ? '${email[0]}***${email.substring(at)}' : email;
-    return (
-      requestId:   'mock_req_${DateTime.now().millisecondsSinceEpoch}',
-      maskedEmail: masked,
-    );
-  }
-
-  @override
-  Future<({String accessToken, String refreshToken, String username})> verifySignupOtp({
-    required String requestId,
+  Future<({String accessToken, String refreshToken, String username})>
+      verifyOtpAndSignup({
+    required String contact,
     required String otp,
+    required String fullName,
+    required String username,
+    required String password,
+    required int groupId,
+    required String age,
+    required String gender,
   }) async {
     await Future.delayed(const Duration(milliseconds: 800));
     if (otp != '123456') throw Exception('Invalid OTP. Hint: 123456');
     return (
       accessToken:  'mock_access_${DateTime.now().millisecondsSinceEpoch}',
       refreshToken: 'mock_refresh_${DateTime.now().millisecondsSinceEpoch}',
-      username:     'new_user',
+      username:     username,
+    );
+  }
+
+  @override
+  Future<({String accessToken, String refreshToken, String username})> login({
+    required String username,
+    required String password,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (password != '123456') throw Exception('Wrong password.');
+    final isKnown = username == 'admin' || username == 'admin@cardibee.app';
+    if (!isKnown) throw const AuthNewUserException();
+    return (
+      accessToken:  'mock_access_${DateTime.now().millisecondsSinceEpoch}',
+      refreshToken: 'mock_refresh_${DateTime.now().millisecondsSinceEpoch}',
+      username:     'admin',
     );
   }
 

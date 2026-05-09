@@ -34,8 +34,8 @@ final class ApiNotificationsRepository implements NotificationsRepository {
         unreadCount = (m['unread_count'] ?? 0) as int;
       }
       return (items: items, nextCursor: nextCursor, unreadCount: unreadCount);
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
@@ -43,8 +43,8 @@ final class ApiNotificationsRepository implements NotificationsRepository {
   Future<void> markRead(String notificationId) async {
     try {
       await _dio.post<void>('/notifications/$notificationId/read');
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
@@ -57,8 +57,8 @@ final class ApiNotificationsRepository implements NotificationsRepository {
         return (data['count'] ?? data['updated'] ?? 0) as int;
       }
       return 0;
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
@@ -71,8 +71,8 @@ final class ApiNotificationsRepository implements NotificationsRepository {
           ? raw['data'] as Map<String, dynamic>
           : raw as Map<String, dynamic>;
       return m.map((k, v) => MapEntry(k, v as bool));
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
@@ -85,8 +85,8 @@ final class ApiNotificationsRepository implements NotificationsRepository {
           ? raw['data'] as Map<String, dynamic>
           : raw as Map<String, dynamic>;
       return m.map((k, v) => MapEntry(k, v as bool));
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 }

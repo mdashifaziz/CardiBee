@@ -1,15 +1,22 @@
 import 'package:dio/dio.dart';
 import 'package:cardibee_flutter/core/error/app_failure.dart';
 
+AppFailure mapError(Object e) {
+  if (e is DioException) return mapDioError(e);
+  if (e is AppFailure) return e;
+  return UnknownFailure(e.toString());
+}
+
 AppFailure mapDioError(DioException e) {
   if (e.type == DioExceptionType.connectionTimeout ||
-      e.type == DioExceptionType.receiveTimeout ||
-      e.type == DioExceptionType.sendTimeout) {
-    return const TimeoutFailure();
+      e.type == DioExceptionType.sendTimeout ||
+      e.type == DioExceptionType.connectionError) {
+    return const ServerSleepingFailure();
   }
 
-  if (e.type == DioExceptionType.connectionError) {
-    return const NetworkFailure();
+  if (e.type == DioExceptionType.receiveTimeout) {
+    return const ServerSleepingFailure(
+        'Server took too long to respond. Please try again.');
   }
 
   final status    = e.response?.statusCode;

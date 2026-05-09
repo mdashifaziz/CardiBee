@@ -577,17 +577,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final user       = ref.watch(currentUserProvider);
     final cardsAsync = ref.watch(cardsNotifierProvider);
 
+    final cards   = cardsAsync.valueOrNull ?? const <UserCard>[];
+    final featured = _allOffers.where((o) => o.featured).toList();
+    final expiring  = _allOffers.where((o) => o.daysLeft <= 7).take(3).toList();
+
+    // Show spinner only on the very first load (no cached data yet).
+    if (cardsAsync.isLoading && !cardsAsync.hasValue) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       backgroundColor: cs.surface,
       body: SafeArea(
-        child: cardsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text(e.toString())),
-          data: (cards) {
-            final featured = _allOffers.where((o) => o.featured).toList();
-            final expiring = _allOffers.where((o) => o.daysLeft <= 7).take(3).toList();
-
-            return CustomScrollView(
+        child: CustomScrollView(
               slivers:[
                 // ── Header ────────────────────────────────────────────────
                 SliverToBoxAdapter(
@@ -1026,8 +1028,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ] else if (_offersLoaded)
                   SliverToBoxAdapter(child: SizedBox(height: tokens.s24)),
               ],
-            );
-          },
         ),
       ),
     );

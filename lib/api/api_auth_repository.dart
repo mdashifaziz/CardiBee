@@ -1,107 +1,98 @@
 import 'package:dio/dio.dart';
+import 'package:cardibee_flutter/core/network/api_endpoints.dart';
 import 'package:cardibee_flutter/core/network/error_mapper.dart';
+import 'package:cardibee_flutter/features/auth/data/auth_service.dart';
 import 'package:cardibee_flutter/features/auth/domain/auth_repository.dart';
 import 'package:cardibee_flutter/features/auth/domain/models/user_profile.dart';
 
 final class ApiAuthRepository implements AuthRepository {
-  ApiAuthRepository(this._dio);
+  ApiAuthRepository({required Dio dio, required AuthService authService})
+      : _dio = dio,
+        _auth = authService;
+
+  // Main app Dio (has AuthInterceptor) — used for authenticated endpoints.
   final Dio _dio;
 
+  // Clean Dio (no interceptors) — used for auth endpoints that need no token.
+  final AuthService _auth;
+
   @override
-  Future<({String accessToken, String refreshToken, String username})> login({
-    required String usernameOrEmail,
-    required String password,
-  }) async {
+  Future<void> sendOtp(String contact) async {
     try {
-      final res = await _dio.post<dynamic>('/auth/login', data: {
-        'username_or_email': usernameOrEmail,
-        'password': password,
-      });
-      final data = _unwrap(res.data) as Map<String, dynamic>;
-      return (
-        accessToken:  data['access_token'] as String,
-        refreshToken: data['refresh_token'] as String,
-        username:     data['username'] as String,
-      );
-    } on DioException catch (e) {
-      // API returns 404 or body code '101' when account doesn't exist
-      final body = e.response?.data;
-      final code = body is Map ? body['code']?.toString() : null;
-      if (e.response?.statusCode == 404 || code == '101' || code == 'user_not_found') {
-        throw const AuthNewUserException();
-      }
-      throw mapDioError(e);
+      await _auth.sendOtp(contact);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
   @override
-  Future<({String requestId, String maskedEmail})> requestSignupOtp({
+  Future<({String accessToken, String refreshToken, String username})>
+      verifyOtpAndSignup({
+    required String contact,
+    required String otp,
+    required String fullName,
     required String username,
-    required String email,
-    required int age,
+    required String password,
+    required int groupId,
+    required String age,
     required String gender,
   }) async {
     try {
-      final res = await _dio.post<dynamic>('/auth/signup/request-otp', data: {
-        'username': username,
-        'email': email,
-        'age': age,
-        'gender': gender,
-      });
-      final data = _unwrap(res.data) as Map<String, dynamic>;
-      return (
-        requestId:   data['request_id'] as String,
-        maskedEmail: data['masked_email'] as String,
+      final data = await _auth.verifyOtpAndSignup(
+        contact: contact,
+        otp: otp,
+        fullName: fullName,
+        username: username,
+        password: password,
+        groupId: groupId,
+        age: age,
+        gender: gender,
       );
-    } on DioException catch (e) {
-      throw mapDioError(e);
+      return (
+        accessToken: data['access'] as String,
+        refreshToken: data['refresh'] as String,
+        username: data['username'] as String,
+      );
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
   @override
-  Future<({String accessToken, String refreshToken, String username})> verifySignupOtp({
-    required String requestId,
-    required String otp,
+  Future<({String accessToken, String refreshToken, String username})> login({
+    required String username,
+    required String password,
   }) async {
     try {
-      final res = await _dio.post<dynamic>('/auth/signup/verify-otp', data: {
-        'request_id': requestId,
-        'otp': otp,
-      });
-      final data = _unwrap(res.data) as Map<String, dynamic>;
+      final data = await _auth.login(username: username, password: password);
       return (
-        accessToken:  data['access_token'] as String,
-        refreshToken: data['refresh_token'] as String,
-        username:     data['username'] as String,
+        accessToken: data['access'] as String,
+        refreshToken: data['refresh'] as String,
+        username: data['username'] as String,
       );
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (e) {
+      throw mapError(e);
     }
   }
 
   @override
   Future<void> logout({String? fcmToken}) async {
     try {
-      await _dio.post<void>('/auth/logout', data: {
+      await _dio.post<void>('/api/auth/logout/', data: {
         if (fcmToken != null) 'fcm_token': fcmToken,
       });
-    } on DioException catch (e) {
-      throw mapDioError(e);
+    } catch (_) {
+      // Logout errors are non-fatal — caller clears tokens regardless.
     }
   }
 
   @override
   Future<UserProfile> getProfile() async {
     try {
-      final res = await _dio.get<dynamic>('/auth/me');
-      return UserProfile.fromJson(_unwrap(res.data) as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw mapDioError(e);
+      final res = await _dio.get<dynamic>(ApiEndpoints.protectedData);
+      return UserProfile.fromJson(res.data as Map<String, dynamic>);
+    } catch (e) {
+      throw mapError(e);
     }
-  }
-
-  dynamic _unwrap(dynamic raw) {
-    if (raw is Map<String, dynamic> && raw.containsKey('data')) return raw['data'];
-    return raw;
   }
 }

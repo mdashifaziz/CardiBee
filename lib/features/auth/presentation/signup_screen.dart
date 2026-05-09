@@ -321,51 +321,57 @@ class SignupScreen extends ConsumerStatefulWidget {
 }
 
 class _SignupScreenState extends ConsumerState<SignupScreen> {
-  final _usernameCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _ageCtrl = TextEditingController();
-  final _usernameFocus = FocusNode();
+  final _fullNameCtrl  = TextEditingController();
+  final _usernameCtrl  = TextEditingController();
+  final _emailCtrl     = TextEditingController();
+  final _passwordCtrl  = TextEditingController();
+  final _ageCtrl       = TextEditingController();
+  final _fullNameFocus = FocusNode();
+  bool _obscurePassword = true;
   String? _selectedGender;
-  
-  // Local state for validation messages
   String? _validationError;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _usernameFocus.requestFocus());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fullNameFocus.requestFocus());
   }
 
   @override
   void dispose() {
+    _fullNameCtrl.dispose();
     _usernameCtrl.dispose();
     _emailCtrl.dispose();
+    _passwordCtrl.dispose();
     _ageCtrl.dispose();
-    _usernameFocus.dispose();
+    _fullNameFocus.dispose();
     super.dispose();
   }
 
-  // --- Validation Logic ---
   bool _validateForm() {
-    setState(() => _validationError = null); // Reset local error
+    setState(() => _validationError = null);
 
+    final fullName = _fullNameCtrl.text.trim();
     final username = _usernameCtrl.text.trim();
-    final email = _emailCtrl.text.trim();
-    final ageStr = _ageCtrl.text.trim();
-    
-    // Simple Email Regex
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    final email    = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text;
+    final ageStr   = _ageCtrl.text.trim();
+    final emailRegex = RegExp(r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$');
 
+    if (fullName.isEmpty) {
+      setState(() => _validationError = 'Please enter your full name');
+      return false;
+    }
     if (username.isEmpty) {
       setState(() => _validationError = 'Please enter a username');
       return false;
     }
-    if (email.isEmpty) {
-      setState(() => _validationError = 'Email address is required');
+    if (email.isEmpty || !emailRegex.hasMatch(email)) {
+      setState(() => _validationError = 'Please enter a valid email address');
       return false;
     }
-    if (!emailRegex.hasMatch(email)) {
-      setState(() => _validationError = 'Please enter a valid email address');
+    if (password.length < 8) {
+      setState(() => _validationError = 'Password must be at least 8 characters');
       return false;
     }
     if (ageStr.isEmpty) {
@@ -376,22 +382,20 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       setState(() => _validationError = 'Please select your gender');
       return false;
     }
-    
     return true;
   }
 
   void _sendOtp() {
     if (!_validateForm()) return;
 
-    final username = _usernameCtrl.text.trim();
-    final email = _emailCtrl.text.trim();
-    final age = int.parse(_ageCtrl.text.trim());
-
-    ref.read(authNotifierProvider.notifier).requestSignupOtp(
-          username: username,
-          email: email,
-          age: age,
-          gender: _selectedGender!,
+    ref.read(authNotifierProvider.notifier).sendOtp(
+          contact:  _emailCtrl.text.trim(),
+          fullName: _fullNameCtrl.text.trim(),
+          username: _usernameCtrl.text.trim(),
+          password: _passwordCtrl.text,
+          groupId:  1,
+          age:      _ageCtrl.text.trim(),
+          gender:   _selectedGender!,
         );
   }
 
@@ -458,12 +462,28 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
               SizedBox(height: tokens.s32),
 
-              // 3. Username Field
+              // 3. Full Name
+              const _FieldLabel('Full Name'),
+              SizedBox(height: tokens.s6),
+              TextField(
+                controller: _fullNameCtrl,
+                focusNode: _fullNameFocus,
+                textCapitalization: TextCapitalization.words,
+                onChanged: (_) => setState(() => _validationError = null),
+                decoration: const InputDecoration(
+                  hintText: 'Arif Hossain',
+                  prefixIcon: Icon(Icons.person_outline_rounded, size: 18),
+                ),
+                onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+              ),
+
+              SizedBox(height: tokens.s16),
+
+              // 4. Username
               const _FieldLabel('Username'),
               SizedBox(height: tokens.s6),
               TextField(
                 controller: _usernameCtrl,
-                focusNode: _usernameFocus,
                 autocorrect: false,
                 onChanged: (_) => setState(() => _validationError = null),
                 inputFormatters: [
@@ -473,11 +493,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   hintText: 'arif_hossain',
                   prefixIcon: Icon(Icons.alternate_email_rounded, size: 18),
                 ),
+                onSubmitted: (_) => FocusScope.of(context).nextFocus(),
               ),
 
               SizedBox(height: tokens.s16),
 
-              // 4. Email Field
+              // 5. Email
               const _FieldLabel('Email'),
               SizedBox(height: tokens.s6),
               TextField(
@@ -489,11 +510,38 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   hintText: 'you@example.com',
                   prefixIcon: Icon(Icons.email_outlined, size: 18),
                 ),
+                onSubmitted: (_) => FocusScope.of(context).nextFocus(),
               ),
 
               SizedBox(height: tokens.s16),
 
-              // 5. Age Field
+              // 6. Password
+              const _FieldLabel('Password'),
+              SizedBox(height: tokens.s6),
+              TextField(
+                controller: _passwordCtrl,
+                obscureText: _obscurePassword,
+                onChanged: (_) => setState(() => _validationError = null),
+                decoration: InputDecoration(
+                  hintText: '••••••••',
+                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 18),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 18,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                ),
+                onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+              ),
+
+              SizedBox(height: tokens.s16),
+
+              // 8. Age Field
               const _FieldLabel('Age'),
               SizedBox(height: tokens.s6),
               TextField(
@@ -509,7 +557,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
               SizedBox(height: tokens.s16),
 
-              // 6. Gender Selection (Yellow Theme)
+              // 9. Gender Selection (Yellow Theme)
               const _FieldLabel('Gender'),
               SizedBox(height: tokens.s10),
               Wrap(
@@ -542,7 +590,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 }).toList(),
               ),
 
-              // 7. Validation / Server Error Banner
+              // 10. Validation / Server Error Banner
               if (displayError != null) ...[
                 SizedBox(height: tokens.s16),
                 _ErrorBanner(displayError),
@@ -550,7 +598,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
               SizedBox(height: tokens.s24),
 
-              // 8. Action Button
+              // 11. Action Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -567,7 +615,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
               SizedBox(height: tokens.s24),
 
-              // 9. Bottom Links
+              // 12. Bottom Links
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

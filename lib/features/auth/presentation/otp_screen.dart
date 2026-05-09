@@ -340,12 +340,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   String get _otp => _cells.map((c) => c.text).join();
 
   void _verify(String otp) {
-    final data = _otpData;
-    if (data == null) return;
-    ref.read(authNotifierProvider.notifier).verifySignupOtp(
-          requestId: data.requestId,
-          otp: otp,
-        );
+    if (_otpData == null) return;
+    ref.read(authNotifierProvider.notifier).verifyOtpAndSignup(otp);
   }
 
   void _resend() {
@@ -355,11 +351,14 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       c.clear();
     }
     _foci[0].requestFocus();
-    ref.read(authNotifierProvider.notifier).requestSignupOtp(
+    ref.read(authNotifierProvider.notifier).sendOtp(
+          contact:  data.contact,
+          fullName: data.fullName,
           username: data.username,
-          email: data.email,
-          age: data.age,
-          gender: data.gender,
+          password: data.password,
+          groupId:  data.groupId,
+          age:      data.age,
+          gender:   data.gender,
         );
   }
 
@@ -439,7 +438,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               ),
               SizedBox(height: tokens.s8),
               Text(
-                'Enter the 6-digit code sent to ${data.maskedEmail}',
+                'Enter the 6-digit code sent to ${data.contact}',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: cs.onSurfaceVariant,
                 ),

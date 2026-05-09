@@ -44,7 +44,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final pwd = _passwordCtrl.text;
     if (id.isEmpty || pwd.isEmpty) return;
     ref.read(authNotifierProvider.notifier).login(
-      usernameOrEmail: id,
+      username: id,
       password: pwd,
     );
   }

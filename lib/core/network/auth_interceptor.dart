@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:cardibee_flutter/core/network/api_endpoints.dart';
 import 'package:cardibee_flutter/core/storage/token_storage.dart';
 
 // Attaches Bearer token, silently refreshes on 401, then retries once.
@@ -54,20 +55,20 @@ final class AuthInterceptor extends Interceptor {
       }
 
       final response = await _dio.post<Map<String, dynamic>>(
-        '/auth/refresh',
-        data: {'refresh_token': refreshToken},
+        ApiEndpoints.refreshToken,
+        data: {'refresh': refreshToken},
         options: Options(extra: {'_retried': true}),
       );
 
       final data = response.data!;
       await _storage.saveTokens(
-        accessToken:  data['access_token'] as String,
-        refreshToken: data['refresh_token'] as String,
+        accessToken:  data['access'] as String,
+        refreshToken: refreshToken,
       );
 
       // Retry original request with new token
       final retryOptions = err.requestOptions
-        ..headers['Authorization'] = 'Bearer ${data['access_token']}'
+        ..headers['Authorization'] = 'Bearer ${data['access']}'
         ..extra['_retried'] = true;
 
       final retried = await _dio.fetch<dynamic>(retryOptions);

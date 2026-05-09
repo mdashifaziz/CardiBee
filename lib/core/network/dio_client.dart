@@ -54,23 +54,30 @@ final dioProvider = Provider<Dio>((ref) {
 final class _LoggingInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // In prod this interceptor is never added. In dev, log method + path only.
     // ignore: avoid_print
-    print('[CardiBee] --> ${options.method} ${options.path}');
+    print('[CardiBee] --> ${options.method} ${options.uri}');
+    if (options.data != null) {
+      // ignore: avoid_print
+      print('[CardiBee]     body: ${options.data}');
+    }
     handler.next(options);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     // ignore: avoid_print
-    print('[CardiBee] <-- ${response.statusCode} ${response.requestOptions.path}');
+    print('[CardiBee] <-- ${response.statusCode} ${response.requestOptions.uri}');
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     // ignore: avoid_print
-    print('[CardiBee] ERR ${err.response?.statusCode} ${err.requestOptions.path}');
+    print('[CardiBee] ERR ${err.response?.statusCode} ${err.requestOptions.uri}');
+    if (err.response?.data != null) {
+      // ignore: avoid_print
+      print('[CardiBee]     response: ${err.response?.data}');
+    }
     handler.next(err);
   }
 }

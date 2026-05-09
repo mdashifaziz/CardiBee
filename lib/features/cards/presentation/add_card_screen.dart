@@ -229,8 +229,10 @@ class _StepBank extends ConsumerWidget {
         SizedBox(height: tokens.s16),
         banks.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Text(e.toString()),
-          data: (list) => Column(
+          error: (e, _) => _ApiUnavailable(onRetry: () => ref.invalidate(banksProvider)),
+          data: (list) => list.isEmpty
+              ? const _ApiUnavailable()
+              : Column(
             children: list.map((b) {
               final active = selected == b.id;
               return Padding(
@@ -259,12 +261,18 @@ class _StepBank extends ConsumerWidget {
                             borderRadius: tokens.brMd,
                           ),
                           alignment: Alignment.center,
-                          child: Text(
-                            b.shortCode[0],
-                            style: TextStyle(
-                              color: cs.onPrimary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Text(
+                                b.shortCode,
+                                style: TextStyle(
+                                  color: cs.onPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -315,8 +323,10 @@ class _StepProduct extends ConsumerWidget {
         SizedBox(height: tokens.s16),
         types.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Text(e.toString()),
-          data: (list) => Column(
+          error: (e, _) => _ApiUnavailable(onRetry: () => ref.invalidate(cardTypesProvider(bankId))),
+          data: (list) => list.isEmpty
+              ? const _ApiUnavailable()
+              : Column(
             children: list.map((ct) {
               final active = selected == ct.id;
               return Padding(
@@ -339,20 +349,16 @@ class _StepProduct extends ConsumerWidget {
                     child: Row(
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(ct.productName,
-                                  style: theme.textTheme.bodyMedium
-                                      ?.copyWith(fontWeight: FontWeight.w500)),
-                              SizedBox(height: 2),
-                              NetworkLogo(network: ct.network, size: 'sm'),
-                            ],
-                          ),
+                          child: Text(ct.productName,
+                              style: theme.textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w500)),
                         ),
-                        if (active)
+                        NetworkLogo(network: ct.network, size: 'sm'),
+                        if (active) ...[
+                          SizedBox(width: tokens.s8),
                           Icon(Icons.check_circle_rounded,
                               color: cs.primary, size: 20),
+                        ],
                       ],
                     ),
                   ),
@@ -638,6 +644,38 @@ class _StepStyle extends StatelessWidget {
 }
 
 // ── Shared ────────────────────────────────────────────────────────────────────
+
+class _ApiUnavailable extends StatelessWidget {
+  const _ApiUnavailable({this.onRetry});
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Column(
+        children: [
+          Icon(Icons.cloud_off_rounded, size: 40, color: cs.onSurfaceVariant),
+          const SizedBox(height: 12),
+          Text(
+            'Could not load data.\nCheck that your backend is running.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: cs.onSurfaceVariant),
+          ),
+          if (onRetry != null) ...[
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 16),
+              label: const Text('Retry'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
 
 class _CircleBtn extends StatelessWidget {
   const _CircleBtn({

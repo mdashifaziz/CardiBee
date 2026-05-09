@@ -18,13 +18,16 @@ class CardsScreen extends ConsumerWidget {
     final cs     = theme.colorScheme;
     final tokens = theme.tokens;
 
+    final cards = state.valueOrNull ?? const <UserCard>[];
+
+    if (state.isLoading && !state.hasValue) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       backgroundColor: cs.surface,
       body: SafeArea(
-        child: state.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error:   (e, _) => Center(child: Text(e.toString())),
-          data:    (cards) => Stack(
+        child: Stack(
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,7 +132,6 @@ class CardsScreen extends ConsumerWidget {
               ),
             ],
           ),
-        ),
       ),
     );
   }

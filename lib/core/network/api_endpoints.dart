@@ -1,0 +1,13 @@
+abstract final class ApiEndpoints {
+  static const String sendOtp               = 'api/auth/signup/send-otp/';
+  static const String verifyOtpAndSignup    = 'api/auth/signup/verify-otp/';
+  static const String login                 = 'api/auth/login/';
+  static const String refreshToken          = 'api/auth/token/refresh/';
+  static const String protectedData         = 'api/auth/protected/';
+  static const String requestPasswordReset  = 'api/auth/password-reset/request-otp/';
+  static const String verifyAndSetPassword  = 'api/auth/password-reset/verify-set/';
+
+  static const String banks                 = 'nucleus/banks/';
+  static String bankCardTypes(String bankId) => 'nucleus/banks/$bankId/card-types/';
+  static const String cards                 = 'nucleus/cards/';
+}
