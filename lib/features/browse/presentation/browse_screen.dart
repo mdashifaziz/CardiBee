@@ -17,16 +17,20 @@ class BrowseScreen extends ConsumerStatefulWidget {
 
 class _BrowseScreenState extends ConsumerState<BrowseScreen> {
   late String _category;
-  String _query    = '';
-  List<Offer> _all = [];
-  bool _loading    = true;
+  String _query     = '';
+  List<Offer> _all  = [];
+  bool _loading     = true;
+  bool _loadingMore = false;
   String? _error;
-  final _queryCtrl = TextEditingController();
+  String? _nextCursor;
+  final _queryCtrl  = TextEditingController();
+  final _scrollCtrl = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _category = widget.initialCategory ?? 'All';
+    _scrollCtrl.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _loadAll(); });
   }
 
@@ -37,29 +41,52 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
       final routerState = GoRouterState.of(context);
       final cat = routerState.uri.queryParameters['cat'];
       if (cat != null && cat != _category) setState(() => _category = cat);
-    } catch (_) {
-      // GoRouterState may not be available in all contexts
-    }
+    } catch (_) {}
   }
 
   @override
   void dispose() {
+    _scrollCtrl.dispose();
     _queryCtrl.dispose();
     super.dispose();
   }
 
+  void _onScroll() {
+    if (_loadingMore || _nextCursor == null) return;
+    if (_scrollCtrl.position.pixels >= _scrollCtrl.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
   Future<void> _loadAll() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() { _loading = true; _error = null; _nextCursor = null; });
     try {
       final result = await ref.read(offersRepositoryProvider).listOffers(
         myCardsOnly: false,
-        limit: 100,
+        limit: 16,
       );
-      setState(() => _all = result.items);
+      setState(() { _all = result.items; _nextCursor = result.nextCursor; });
     } catch (e) {
       setState(() => _error = e is AppFailure ? e.displayMessage : e.toString());
     } finally {
       setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loadMore() async {
+    setState(() => _loadingMore = true);
+    try {
+      final result = await ref.read(offersRepositoryProvider).listOffers(
+        myCardsOnly: false,
+        limit: 16,
+        cursor: _nextCursor,
+      );
+      setState(() {
+        _all = [..._all, ...result.items];
+        _nextCursor = result.nextCursor;
+      });
+    } catch (_) {} finally {
+      setState(() => _loadingMore = false);
     }
   }
 
@@ -207,11 +234,20 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                           ),
                         )
                       : ListView.separated(
+                          controller: _scrollCtrl,
                           padding: EdgeInsets.fromLTRB(
                               tokens.s20, 0, tokens.s20, tokens.s24),
-                          itemCount: results.length,
+                          itemCount: results.length + (_loadingMore ? 1 : 0),
                           separatorBuilder: (_, __) => SizedBox(height: tokens.s8),
-                          itemBuilder: (_, i) => OfferCardWidget(offer: results[i]),
+                          itemBuilder: (_, i) {
+                            if (i == results.length) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child: Center(child: CircularProgressIndicator()),
+                              );
+                            }
+                            return OfferCardWidget(offer: results[i]);
+                          },
                         ),
             ),
           ],

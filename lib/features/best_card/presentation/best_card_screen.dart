@@ -41,7 +41,6 @@ class _BestCardScreenState extends ConsumerState<BestCardScreen> {
   }
 
   bool _offerMatchesCard(Offer offer, UserCard card) {
-    if (offer.eligibleCards.isEmpty) return true;
     return offer.eligibleCards.any(
       (ec) => ec.cardTypeId == card.cardTypeId,
     );

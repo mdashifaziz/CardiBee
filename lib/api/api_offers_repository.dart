@@ -17,7 +17,7 @@ final class ApiOffersRepository implements OffersRepository {
     bool? expiringSoon,
     bool? featured,
     String? sort,
-    int limit = 20,
+    int limit = 16,
     String? cursor,
   }) async {
     try {
@@ -68,7 +68,7 @@ final class ApiOffersRepository implements OffersRepository {
 
   @override
   Future<({List<Offer> items, String? nextCursor, int totalCount})> listSavedOffers({
-    int limit = 20,
+    int limit = 16,
     String? cursor,
   }) async {
     try {

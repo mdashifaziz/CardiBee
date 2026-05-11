@@ -121,7 +121,7 @@
 //                       label: 'Search merchants, banks or offers',
 //                       button: true,
 //                       child: GestureDetector(
-//                         onTap: () => context.go(AppRoutes.browse),
+//                         onTap: () => context.push(AppRoutes.browse),
 //                         child: Container(
 //                           height: 48,
 //                           decoration: BoxDecoration(
@@ -179,7 +179,7 @@
 //                               label: cat.name,
 //                               button: true,
 //                               child: GestureDetector(
-//                                 onTap: () => context.go('${AppRoutes.browse}?cat=${cat.key}'),
+//                                 onTap: () => context.push('${AppRoutes.browse}?cat=${cat.key}'),
 //                                 child: Container(
 //                                   decoration: BoxDecoration(
 //                                     color: cs.surface,
@@ -239,7 +239,7 @@
 //                             child: Text('Featured offers ✨', style: theme.textTheme.headlineSmall),
 //                           ),
 //                           TextButton(
-//                             onPressed: () => context.go(AppRoutes.browse),
+//                             onPressed: () => context.push(AppRoutes.browse),
 //                             child: Padding(
 //                               padding: EdgeInsets.only(right: tokens.s20),
 //                               child: const Text('See all'),
@@ -502,6 +502,7 @@
 // }
 
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -550,6 +551,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<Offer> _allOffers =[];
   bool _offersLoaded = false;
+  final _featuredCtrl = PageController(viewportFraction: 0.88);
+  Timer? _featuredTimer;
 
   @override
   void initState() {
@@ -557,11 +560,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadOffers());
   }
 
+  void _startFeaturedAutoSlide(int count) {
+    _featuredTimer?.cancel();
+    if (count <= 1) return;
+    _featuredTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!_featuredCtrl.hasClients) return;
+      final next = (_featuredCtrl.page!.round() + 1) % count;
+      _featuredCtrl.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _featuredTimer?.cancel();
+    _featuredCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadOffers() async {
     final repo = ref.read(offersRepositoryProvider);
     try {
-      final result = await repo.listOffers(myCardsOnly: false);
-      if (mounted) setState(() { _allOffers = result.items; _offersLoaded = true; });
+      final result = await repo.listOffers(myCardsOnly: false, sort: 'expiring_soon');
+      if (mounted) {
+        setState(() { _allOffers = result.items; _offersLoaded = true; });
+        _startFeaturedAutoSlide(result.items.where((o) => o.featured).length);
+      }
     } catch (_) {
       if (mounted) setState(() => _offersLoaded = true);
     }
@@ -638,7 +665,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       label: 'Search merchants, banks or offers',
                       button: true,
                       child: GestureDetector(
-                        onTap: () => context.go(AppRoutes.browse),
+                        onTap: () => context.push(AppRoutes.browse),
                         child: Container(
                           height: 48,
                           decoration: BoxDecoration(
@@ -784,7 +811,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             label: cat.name,
                             button: true,
                             child: GestureDetector(
-                              onTap: () => context.go('${AppRoutes.browse}?cat=${cat.key}'),
+                              onTap: () => context.push('${AppRoutes.browse}?cat=${cat.key}'),
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: isDark ? const Color(0xFF181B31) : Colors.white,
@@ -949,7 +976,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () => context.go(AppRoutes.browse),
+                            onPressed: () => context.push(AppRoutes.browse),
                             child: Padding(
                               padding: EdgeInsets.only(right: tokens.s16),
                               child: const Text('See all'),
@@ -962,12 +989,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SliverToBoxAdapter(
                     child: SizedBox(
                       height: 180,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: EdgeInsets.symmetric(horizontal: tokens.s16),
+                      child: PageView.builder(
+                        controller: _featuredCtrl,
                         itemCount: featured.length,
                         itemBuilder: (_, i) => Padding(
-                          padding: EdgeInsets.only(right: tokens.s12),
+                          padding: EdgeInsets.symmetric(horizontal: tokens.s8),
                           child: OfferCardWidget(
                             offer: featured[i],
                             variant: OfferCardVariant.featured,

@@ -9,7 +9,7 @@ abstract interface class OffersRepository {
     bool? expiringSoon,
     bool? featured,
     String? sort,         // 'expiring_soon' | 'newest' | 'highest_discount'
-    int limit = 20,
+    int limit = 16,
     String? cursor,
   });
 

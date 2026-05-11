@@ -21,11 +21,20 @@ class MyOffersScreen extends ConsumerStatefulWidget {
 }
 
 class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
-  String _category = 'All';
-  String _sort     = 'expiring_soon';
+  String _category  = 'All';
+  String _sort      = 'expiring_soon';
   List<Offer> _offers = [];
-  bool _loading = true;
+  bool _loading     = true;
+  bool _loadingMore = false;
+  String? _nextCursor;
   String? _cardFilter;
+  final _scrollCtrl = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollCtrl.addListener(_onScroll);
+  }
 
   @override
   void didChangeDependencies() {
@@ -35,8 +44,21 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _load(); });
   }
 
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_loadingMore || _nextCursor == null) return;
+    if (_scrollCtrl.position.pixels >= _scrollCtrl.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() { _loading = true; _nextCursor = null; });
     try {
       final result = await ref.read(offersRepositoryProvider).listOffers(
         myCardsOnly: true,
@@ -44,9 +66,28 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
         cardId: _cardFilter,
         sort: _sort,
       );
-      setState(() => _offers = result.items);
+      setState(() { _offers = result.items; _nextCursor = result.nextCursor; });
     } finally {
       setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loadMore() async {
+    setState(() => _loadingMore = true);
+    try {
+      final result = await ref.read(offersRepositoryProvider).listOffers(
+        myCardsOnly: true,
+        category: _category == 'All' ? null : _category,
+        cardId: _cardFilter,
+        sort: _sort,
+        cursor: _nextCursor,
+      );
+      setState(() {
+        _offers = [..._offers, ...result.items];
+        _nextCursor = result.nextCursor;
+      });
+    } catch (_) {} finally {
+      setState(() => _loadingMore = false);
     }
   }
 
@@ -159,11 +200,20 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
                           onAddCard: () => context.push(AppRoutes.addCard),
                         )
                       : ListView.separated(
+                          controller: _scrollCtrl,
                           padding: EdgeInsets.fromLTRB(
                               tokens.s20, 0, tokens.s20, tokens.s24),
-                          itemCount: _offers.length,
+                          itemCount: _offers.length + (_loadingMore ? 1 : 0),
                           separatorBuilder: (_, __) => SizedBox(height: tokens.s8),
-                          itemBuilder: (_, i) => OfferCardWidget(offer: _offers[i]),
+                          itemBuilder: (_, i) {
+                            if (i == _offers.length) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child: Center(child: CircularProgressIndicator()),
+                              );
+                            }
+                            return OfferCardWidget(offer: _offers[i]);
+                          },
                         ),
             ),
           ],

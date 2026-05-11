@@ -27,8 +27,9 @@ import 'package:cardibee_flutter/features/about/presentation/about_screen.dart';
 import 'package:cardibee_flutter/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  ref.watch(isAuthenticatedProvider);
   final notifier = _RefreshListenable();
+
+  ref.listen(isAuthenticatedProvider, (_, __) => notifier.refresh());
 
   return GoRouter(
     refreshListenable: notifier,
@@ -99,4 +100,6 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-class _RefreshListenable extends ChangeNotifier {}
+class _RefreshListenable extends ChangeNotifier {
+  void refresh() => notifyListeners();
+}

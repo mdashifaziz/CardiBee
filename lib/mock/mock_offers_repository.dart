@@ -27,7 +27,7 @@ final class MockOffersRepository implements OffersRepository {
     bool? expiringSoon,
     bool? featured,
     String? sort,
-    int limit = 20,
+    int limit = 16,
     String? cursor,
   }) async {
     var list = await _load();
@@ -65,7 +65,7 @@ final class MockOffersRepository implements OffersRepository {
 
   @override
   Future<({List<Offer> items, String? nextCursor, int totalCount})> listSavedOffers({
-    int limit = 20,
+    int limit = 16,
     String? cursor,
   }) async {
     final list = await _load();

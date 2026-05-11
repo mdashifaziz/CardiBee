@@ -97,17 +97,18 @@ class UserProfile {
   }
 
   factory UserProfile.fromJson(Map<String, dynamic> j) => UserProfile(
-        id:            j['id']               as int,
+        id:            int.parse(j['id'].toString()),
         fullName:      j['full_name']        as String,
         phone:         j['mobile_no']        as String?,
         email:         j['email']            as String?,
         username:      j['username']         as String?,
         age:           j['age']              as int?,
         language:      j['language']         as String?,
-        avatarUrl:     j['avatarUrl']        as String?,
+        avatarUrl:     (j['avatar_url'] ?? j['avatarUrl']) as String?,
         savingsYtdBdt: j['savings_ytd_bdt'] as int?,
         createdAt:     j['created_at']       as String?,
-        subscription:  SubscriptionStatus.fromIsPro(j['is_pro'] as bool? ?? false),
+        subscription:  SubscriptionStatus.fromIsPro(
+            j['is_pro'] == true || j['is_pro'] == 1),
       );
 
   UserProfile copyWith({
@@ -117,6 +118,7 @@ class UserProfile {
     String? username,
     int? age,
     String? language,
+    String? avatarUrl,
   }) =>
       UserProfile(
         id:            id,
@@ -126,7 +128,7 @@ class UserProfile {
         username:      username      ?? this.username,
         age:           age           ?? this.age,
         language:      language      ?? this.language,
-        avatarUrl:     avatarUrl,
+        avatarUrl:     avatarUrl     ?? this.avatarUrl,
         savingsYtdBdt: savingsYtdBdt,
         createdAt:     createdAt,
         subscription:  subscription,

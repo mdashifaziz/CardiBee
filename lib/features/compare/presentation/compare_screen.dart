@@ -30,7 +30,7 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
       try {
         final result = await ref.read(offersRepositoryProvider).listOffers(
           myCardsOnly: false,
-          limit: 50,
+          limit: 16,
         );
         if (mounted) {
           setState(() { _allOffers = result.items; _offersLoaded = true; });
@@ -42,7 +42,6 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
   }
 
   bool _offerMatchesCard(Offer offer, UserCard card) {
-    if (offer.eligibleCards.isEmpty) return true;
     return offer.eligibleCards.any(
       (ec) => ec.cardTypeId == card.cardTypeId,
     );
@@ -497,7 +496,7 @@ class _MiniOfferTile extends StatelessWidget {
               child: Text(
                 offer.merchantInitial,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 8,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),

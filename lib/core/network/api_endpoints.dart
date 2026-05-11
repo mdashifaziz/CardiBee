@@ -11,6 +11,8 @@ abstract final class ApiEndpoints {
   static String bankCardTypes(String bankId) => 'nucleus/banks/$bankId/card-types/';
   static const String cards                 = 'nucleus/cards/';
 
+  static const String profile               = 'api/auth/profile/';
+
   static const String offersSearch          = 'nucleus/offers/search/';
   static String offer(String id)            => 'nucleus/offers/$id/';
   static String saveOffer(String id)        => 'nucleus/offers/$id/save/';
