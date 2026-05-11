@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:cardibee_flutter/core/network/api_endpoints.dart';
 import 'package:cardibee_flutter/core/network/error_mapper.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
 import 'package:cardibee_flutter/features/offers/domain/offers_repository.dart';
@@ -20,7 +21,7 @@ final class ApiOffersRepository implements OffersRepository {
     String? cursor,
   }) async {
     try {
-      final res = await _dio.post<dynamic>('/offers/search', data: {
+      final res = await _dio.post<dynamic>(ApiEndpoints.offersSearch, data: {
         'my_cards_only': myCardsOnly,
         'limit': limit,
         if (category != null) 'category': category,
@@ -40,7 +41,7 @@ final class ApiOffersRepository implements OffersRepository {
   @override
   Future<Offer> getOffer(String offerId) async {
     try {
-      final res = await _dio.get<dynamic>('/offers/$offerId');
+      final res = await _dio.get<dynamic>(ApiEndpoints.offer(offerId));
       return Offer.fromJson(_patchOffer(_unwrapSingle(res.data)));
     } catch (e) {
       throw mapError(e);
@@ -50,7 +51,7 @@ final class ApiOffersRepository implements OffersRepository {
   @override
   Future<void> saveOffer(String offerId) async {
     try {
-      await _dio.post<void>('/offers/$offerId/save');
+      await _dio.post<void>(ApiEndpoints.saveOffer(offerId));
     } catch (e) {
       throw mapError(e);
     }
@@ -59,7 +60,7 @@ final class ApiOffersRepository implements OffersRepository {
   @override
   Future<void> unsaveOffer(String offerId) async {
     try {
-      await _dio.delete<void>('/offers/$offerId/save');
+      await _dio.delete<void>(ApiEndpoints.saveOffer(offerId));
     } catch (e) {
       throw mapError(e);
     }
@@ -71,7 +72,7 @@ final class ApiOffersRepository implements OffersRepository {
     String? cursor,
   }) async {
     try {
-      final res = await _dio.get<dynamic>('/offers/saved', queryParameters: {
+      final res = await _dio.get<dynamic>(ApiEndpoints.savedOffers, queryParameters: {
         'limit': limit,
         if (cursor != null) 'cursor': cursor,
       });
@@ -135,9 +136,14 @@ final class ApiOffersRepository implements OffersRepository {
               ? name[0].toUpperCase()
               : '?';
     }
-    m['description'] ??= m['title'] ?? '';
+    m['description']           ??= m['title'] ?? '';
+    m['discount_label']        ??= '';
+    m['valid_from']            ??= '';
+    m['valid_until']           ??= '';
+    m['category']              ??= '';
+    m['merchant_id']           ??= '';
     m['banner_gradient_start'] ??= '#131B4D';
-    m['banner_gradient_end'] ??= '#2563EB';
+    m['banner_gradient_end']   ??= '#2563EB';
     return m;
   }
 }

@@ -61,6 +61,8 @@ AppFailure _handle403(dynamic body, String? serverMsg) {
 }
 
 String? _extractMessage(dynamic body) {
-  if (body is Map<String, dynamic>) return body['message'] as String?;
+  if (body is Map<String, dynamic>) {
+    return (body['detail'] ?? body['message']) as String?;
+  }
   return null;
 }

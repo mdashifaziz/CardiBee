@@ -986,7 +986,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: Row(
                         children:[
                           Text(
-                            'Expiring soon', 
+                            'Expiring soon',
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: isDark ? Colors.white : const Color(0xFF131B4D), 

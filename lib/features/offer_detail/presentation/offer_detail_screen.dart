@@ -68,9 +68,7 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
 
     // Find which of the user's cards qualify for this offer
     final qualifying = cards.where((uc) => _offer.eligibleCards.any(
-      (ec) => ec.bankId == uc.bankId &&
-              ec.cardType == uc.type &&
-              ec.network == uc.network,
+      (ec) => ec.cardTypeId == uc.cardTypeId,
     )).toList();
 
     Color bannerStart() {
@@ -269,9 +267,7 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
                 // All eligible cards
                 ...(_offer.eligibleCards.map((ec) {
                   final owned = qualifying.any((uc) =>
-                      uc.bankId == ec.bankId &&
-                      uc.type == ec.cardType &&
-                      uc.network == ec.network);
+                      uc.cardTypeId == ec.cardTypeId);
                   return Padding(
                     padding: EdgeInsets.only(bottom: tokens.s8),
                     child: _EligibleCardRow(ec: ec, owned: owned),
@@ -455,7 +451,7 @@ class _EligibleCardRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(ec.bankName, style: theme.textTheme.labelMedium),
-                Text('${ec.network} · ${ec.cardType}',
+                Text('${ec.network} · ${ec.productName}',
                     style: theme.textTheme.labelSmall
                         ?.copyWith(color: cs.onSurfaceVariant)),
               ],

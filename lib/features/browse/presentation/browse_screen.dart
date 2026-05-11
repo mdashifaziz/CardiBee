@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cardibee_flutter/core/error/app_failure.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/offer_card_widget.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
@@ -19,6 +20,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
   String _query    = '';
   List<Offer> _all = [];
   bool _loading    = true;
+  String? _error;
   final _queryCtrl = TextEditingController();
 
   @override
@@ -47,13 +49,15 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
   }
 
   Future<void> _loadAll() async {
-    setState(() => _loading = true);
+    setState(() { _loading = true; _error = null; });
     try {
       final result = await ref.read(offersRepositoryProvider).listOffers(
         myCardsOnly: false,
         limit: 100,
       );
       setState(() => _all = result.items);
+    } catch (e) {
+      setState(() => _error = e is AppFailure ? e.displayMessage : e.toString());
     } finally {
       setState(() => _loading = false);
     }
@@ -158,7 +162,29 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
-                  : results.isEmpty
+                  : _error != null
+                      ? Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(tokens.s24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('Failed to load offers',
+                                    style: theme.textTheme.titleMedium),
+                                SizedBox(height: tokens.s8),
+                                Text(_error!,
+                                    style: theme.textTheme.bodySmall
+                                        ?.copyWith(color: cs.error),
+                                    textAlign: TextAlign.center),
+                                SizedBox(height: tokens.s16),
+                                FilledButton(
+                                    onPressed: _loadAll,
+                                    child: const Text('Retry')),
+                              ],
+                            ),
+                          ),
+                        )
+                      : results.isEmpty
                       ? Center(
                           child: Padding(
                             padding: EdgeInsets.all(tokens.s32),

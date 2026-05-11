@@ -1,21 +1,24 @@
 class EligibleCard {
   const EligibleCard({
+    required this.cardTypeId,
+    required this.productName,
     required this.bankId,
     required this.bankName,
-    required this.cardType,
     required this.network,
   });
 
+  final String cardTypeId;
+  final String productName;
   final String bankId;
   final String bankName;
-  final String cardType;  // 'credit' | 'debit'
   final String network;   // 'Visa' | 'Mastercard' | 'Amex'
 
   factory EligibleCard.fromJson(Map<String, dynamic> j) => EligibleCard(
-    bankId:   j['bank_id']   as String,
-    bankName: j['bank_name'] as String,
-    cardType: j['card_type'] as String,
-    network:  j['network']   as String,
+    cardTypeId:  j['card_type_id'] as String,
+    productName: j['product_name'] as String,
+    bankId:      j['bank_id']      as String,
+    bankName:    j['bank_name']    as String,
+    network:     j['network']      as String,
   );
 }
 

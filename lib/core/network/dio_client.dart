@@ -25,8 +25,8 @@ Dio buildDioClient(TokenStorage tokenStorage) {
       baseUrl: Env.apiBaseUrl,
       connectTimeout: Env.connectTimeout,
       receiveTimeout: Env.receiveTimeout,
+      contentType: 'application/json',
       headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
         'X-Client': 'cardibee-flutter/1.0.0',
       },
