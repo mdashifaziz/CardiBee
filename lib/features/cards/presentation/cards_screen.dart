@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,120 +19,79 @@ class CardsScreen extends ConsumerWidget {
     final cs     = theme.colorScheme;
     final tokens = theme.tokens;
 
-    final cards = state.valueOrNull ?? const <UserCard>[];
-
-    if (state.isLoading && !state.hasValue) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
     return Scaffold(
       backgroundColor: cs.surface,
       body: SafeArea(
-        child: Stack(
+        child: state.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error:   (e, _) => Center(child: Text(e.toString())),
+          data:    (cards) => Stack(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Fixed header — stays visible while list scrolls
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                        tokens.s20, tokens.s8, tokens.s20, tokens.s8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('My cards',
-                                  style: theme.textTheme.headlineLarge),
-                              Text(
-                                '${cards.length} cards saved · No card numbers stored',
-                                style: theme.textTheme.bodySmall
-                                    ?.copyWith(color: cs.onSurfaceVariant),
-                              ),
-                            ],
+              CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                          tokens.s20, tokens.s8, tokens.s20, tokens.s8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('My cards', style: theme.textTheme.headlineLarge),
+                          Text(
+                            '${cards.length} cards saved · No card numbers stored',
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(color: cs.onSurfaceVariant),
                           ),
-                        ),
-                        if (cards.length >= 2)
-                          Semantics(
-                            label: 'Compare cards',
-                            button: true,
-                            child: GestureDetector(
-                              onTap: () => context.push(AppRoutes.compare),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: cs.surfaceContainerLow,
-                                  borderRadius: tokens.brFull,
-                                  border:
-                                      Border.all(color: cs.outlineVariant),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.compare_arrows_rounded,
-                                        size: 15, color: cs.onSurface),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Compare',
-                                      style:
-                                          theme.textTheme.labelMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: cs.onSurface,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                  Expanded(
-                    child: CustomScrollView(
-                      slivers: [
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                              tokens.s20, tokens.s8, tokens.s20, 100),
-                          sliver: SliverList.builder(
-                            itemCount: cards.length,
-                            itemBuilder: (context, i) => Padding(
-                              padding: EdgeInsets.only(bottom: tokens.s20),
-                              child: _CardTile(card: cards[i], index: i),
-                            ),
-                          ),
-                        ),
-                      ],
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(
+                        tokens.s20, tokens.s8, tokens.s20, 100),
+                    sliver: SliverList.builder(
+                      itemCount: cards.length,
+                      itemBuilder: (context, i) => Padding(
+                        padding: EdgeInsets.only(bottom: tokens.s20),
+                        child: _CardTile(card: cards[i], index: i),
+                      ),
                     ),
                   ),
                 ],
               ),
-              // FAB
+              // Floating buttons
               Positioned(
                 bottom: 24,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: FilledButton.icon(
-                    onPressed: () => context.push(AppRoutes.addCard),
-                    icon: const Icon(Icons.add_rounded, size: 18),
-                    label: const Text('Add card'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: cs.primary,
-                      foregroundColor: cs.onPrimary,
-                      elevation: 4,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 14),
-                      shape: const StadiumBorder(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (cards.length >= 2) ...[
+                      _GlassCompareButton(
+                        onTap: () => context.push(AppRoutes.compare),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                    FilledButton.icon(
+                      onPressed: () => context.push(AppRoutes.addCard),
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: const Text('Add card'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onPrimary,
+                        elevation: 4,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 46, vertical: 14),
+                        shape: const StadiumBorder(),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ],
           ),
+        ),
       ),
     );
   }
@@ -250,5 +210,46 @@ class _CardTile extends ConsumerWidget {
   }
 }
 
+class _GlassCompareButton extends StatelessWidget {
+  const _GlassCompareButton({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 13),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: Colors.white.withOpacity(0.25)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.compare_arrows_rounded, size: 18, color: Colors.white),
+                SizedBox(width: 8),
+                Text(
+                  'Compare cards',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 
+// test bottom dont change under
