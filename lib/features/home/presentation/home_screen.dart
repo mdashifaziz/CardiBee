@@ -70,7 +70,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _loadOffers() async {
     final repo = ref.read(offersRepositoryProvider);
     try {
-      final result = await repo.listOffers(myCardsOnly: false, limit: 16);
+      final result = await repo.listOffers(myCardsOnly: false, limit: 16, sort: 'expiring_soon');
       if (mounted) {
         setState(() { _allOffers = result.items; _offersLoaded = true; });
         _startFeaturedAutoSlide(result.items.where((o) => o.featured).length);

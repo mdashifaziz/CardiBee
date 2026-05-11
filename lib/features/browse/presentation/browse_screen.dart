@@ -58,11 +58,14 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
     }
   }
 
+  String? get _apiCategory => _category == 'All' ? null : _category;
+
   Future<void> _loadAll() async {
-    setState(() { _loading = true; _error = null; _nextCursor = null; });
+    setState(() { _loading = true; _error = null; _nextCursor = null; _all = []; });
     try {
       final result = await ref.read(offersRepositoryProvider).listOffers(
         myCardsOnly: false,
+        category: _apiCategory,
         limit: 16,
       );
       setState(() { _all = result.items; _nextCursor = result.nextCursor; });
@@ -78,6 +81,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
     try {
       final result = await ref.read(offersRepositoryProvider).listOffers(
         myCardsOnly: false,
+        category: _apiCategory,
         limit: 16,
         cursor: _nextCursor,
       );
@@ -91,16 +95,12 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
   }
 
   List<Offer> get _filtered {
-    var list = _all;
-    if (_category != 'All') list = list.where((o) => o.category == _category).toList();
-    if (_query.isNotEmpty) {
-      final q = _query.toLowerCase();
-      list = list.where((o) =>
-          o.merchantName.toLowerCase().contains(q) ||
-          o.title.toLowerCase().contains(q) ||
-          o.category.toLowerCase().contains(q)).toList();
-    }
-    return list;
+    if (_query.isEmpty) return _all;
+    final q = _query.toLowerCase();
+    return _all.where((o) =>
+        o.merchantName.toLowerCase().contains(q) ||
+        o.title.toLowerCase().contains(q) ||
+        o.category.toLowerCase().contains(q)).toList();
   }
 
   @override
@@ -162,7 +162,11 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                   final cat    = cats[i];
                   final active = _category == cat;
                   return GestureDetector(
-                    onTap: () => setState(() => _category = cat),
+                    onTap: () {
+                      if (_category == cat) return;
+                      setState(() => _category = cat);
+                      _loadAll();
+                    },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
