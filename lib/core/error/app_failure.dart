@@ -4,6 +4,9 @@
 sealed class AppFailure {
   const AppFailure();
   String get displayMessage;
+
+  @override
+  String toString() => displayMessage;
 }
 
 final class NetworkFailure extends AppFailure {

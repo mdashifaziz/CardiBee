@@ -94,23 +94,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     children: [
                       Row(
                         children: [
-                          CircleAvatar(
+                          _AvatarCircle(
                             radius: 28,
+                            url: user?.avatarUrl,
                             backgroundColor: AppColors.beeYellow,
-                            backgroundImage: user?.avatarUrl != null
-                                ? NetworkImage(user!.avatarUrl!)
-                                : null,
-                            child: user?.avatarUrl == null
-                                ? Text(
-                                    user?.initials ?? '?',
-                                    style: TextStyle(
-                                      fontFamily: AppFonts.display,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.navyDeep,
-                                    ),
-                                  )
-                                : null,
+                            fallbackText: user?.initials ?? '?',
+                            fallbackStyle: TextStyle(
+                              fontFamily: AppFonts.display,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyDeep,
+                            ),
                           ),
                           SizedBox(width: tokens.s16),
                           Column(
@@ -472,27 +466,20 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
                 onTap: _pickImage,
                 child: Stack(
                   children: [
-                    CircleAvatar(
+                    _AvatarCircle(
                       radius: 44,
+                      url: widget.initialAvatarUrl,
+                      file: _pickedImage,
                       backgroundColor: AppColors.beeYellow,
-                      backgroundImage: _pickedImage != null
-                          ? FileImage(_pickedImage!)
-                          : (widget.initialAvatarUrl != null
-                              ? NetworkImage(widget.initialAvatarUrl!)
-                              : null) as ImageProvider?,
-                      child: (_pickedImage == null && widget.initialAvatarUrl == null)
-                          ? Text(
-                              widget.initialName.isNotEmpty
-                                  ? widget.initialName[0].toUpperCase()
-                                  : '?',
-                              style: TextStyle(
-                                fontFamily: AppFonts.display,
-                                fontSize: 28,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.navyDeep,
-                              ),
-                            )
-                          : null,
+                      fallbackText: widget.initialName.isNotEmpty
+                          ? widget.initialName[0].toUpperCase()
+                          : '?',
+                      fallbackStyle: TextStyle(
+                        fontFamily: AppFonts.display,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDeep,
+                      ),
                     ),
                     Positioned(
                       right: 0, bottom: 0,
@@ -643,6 +630,64 @@ class _MenuItem extends StatelessWidget {
         ),
         if (divider) Divider(height: 1, color: cs.outlineVariant),
       ],
+    );
+  }
+}
+
+// Circle avatar with graceful fallback when a network image 404s or fails to load.
+class _AvatarCircle extends StatefulWidget {
+  const _AvatarCircle({
+    required this.radius,
+    required this.fallbackText,
+    required this.fallbackStyle,
+    this.url,
+    this.file,
+    this.backgroundColor,
+  });
+
+  final double radius;
+  final String fallbackText;
+  final TextStyle fallbackStyle;
+  final String? url;
+  final File? file;
+  final Color? backgroundColor;
+
+  @override
+  State<_AvatarCircle> createState() => _AvatarCircleState();
+}
+
+class _AvatarCircleState extends State<_AvatarCircle> {
+  bool _networkFailed = false;
+
+  @override
+  void didUpdateWidget(_AvatarCircle old) {
+    super.didUpdateWidget(old);
+    if (old.url != widget.url) _networkFailed = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ImageProvider? image;
+    var isNetwork = false;
+    if (widget.file != null) {
+      image = FileImage(widget.file!);
+    } else if (widget.url != null && !_networkFailed) {
+      image = NetworkImage(widget.url!);
+      isNetwork = true;
+    }
+
+    return CircleAvatar(
+      radius: widget.radius,
+      backgroundColor: widget.backgroundColor,
+      backgroundImage: image,
+      onBackgroundImageError: isNetwork
+          ? (_, __) {
+              if (mounted) setState(() => _networkFailed = true);
+            }
+          : null,
+      child: image == null
+          ? Text(widget.fallbackText, style: widget.fallbackStyle)
+          : null,
     );
   }
 }

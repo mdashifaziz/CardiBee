@@ -122,11 +122,12 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
             SizedBox(height: tokens.s12),
 
             // Category chips
-            SizedBox(
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: tokens.s20),
+              child: SizedBox(
               height: 36,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: tokens.s20),
                 itemCount: cats.length,
                 separatorBuilder: (_, __) => SizedBox(width: tokens.s8),
                 itemBuilder: (_, i) {
@@ -157,6 +158,7 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
                     ),
                   );
                 },
+              ),
               ),
             ),
             SizedBox(height: tokens.s8),

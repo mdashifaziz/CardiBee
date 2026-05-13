@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cardibee_flutter/core/network/dio_client.dart';
 import 'package:cardibee_flutter/core/routing/app_routes.dart';
 import 'package:cardibee_flutter/core/storage/token_storage.dart';
 import 'package:cardibee_flutter/core/storage/prefs_storage.dart';
@@ -30,6 +31,12 @@ final routerProvider = Provider<GoRouter>((ref) {
   final notifier = _RefreshListenable();
 
   ref.listen(isAuthenticatedProvider, (_, __) => notifier.refresh());
+
+  // On expired session: clear user → triggers isAuthenticatedProvider listener
+  // → router refresh → redirect kicks user to /auth.
+  registerForceLogoutCallback(() {
+    ref.read(currentUserProvider.notifier).state = null;
+  });
 
   return GoRouter(
     refreshListenable: notifier,

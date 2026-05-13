@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/credit_card_visual.dart';
+import 'package:cardibee_flutter/core/widgets/merchant_logo.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
@@ -46,15 +47,42 @@ class _OfferDetailBody extends ConsumerStatefulWidget {
 
 class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
   late Offer _offer;
+  late final PageController _eligibleController;
 
   @override
   void initState() {
     super.initState();
     _offer = widget.offer;
+    _eligibleController = PageController(viewportFraction: 0.85);
+  }
+
+  @override
+  void dispose() {
+    _eligibleController.dispose();
+    super.dispose();
   }
 
   void _toggleSave() {
     ref.read(favoritesProvider.notifier).toggle(_offer.id);
+  }
+
+  // Build a UserCard suitable for visual rendering. If the user owns this
+  // card type, return their actual UserCard (with image / lastDigits). Else
+  // synthesize a placeholder so CreditCardVisual can render bank/product.
+  UserCard _cardForEligible(EligibleCard ec, List<UserCard> owned) {
+    final match = owned.where((uc) => uc.cardTypeId == ec.cardTypeId);
+    if (match.isNotEmpty) return match.first;
+    return UserCard(
+      id: 'eligible_${ec.cardTypeId}',
+      bankId: ec.bankId,
+      bankName: ec.bankName,
+      cardTypeId: ec.cardTypeId,
+      productName: ec.productName,
+      network: ec.network,
+      type: 'credit',
+      gradient: 'navy',
+      createdAt: '',
+    );
   }
 
   @override
@@ -95,9 +123,13 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
             expandedHeight: 240,
             pinned: true,
             backgroundColor: bannerStart(),
-            leading: _GlassBtn(
-              icon: Icons.arrow_back_rounded,
-              onTap: () => Navigator.pop(context),
+            leadingWidth: 56,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 14),
+              child: _GlassBtn(
+                icon: Icons.arrow_back_rounded,
+                onTap: () => Navigator.pop(context),
+              ),
             ),
             actions: [
               _GlassBtn(
@@ -112,7 +144,7 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
                 iconColor: isSaved ? cs.error : Colors.white,
                 onTap: _toggleSave,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 14),
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
@@ -146,22 +178,31 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Brand logo (gradient square + image / initial fallback)
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                          width: 56,
+                          height: 56,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.95),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            _offer.category,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: cs.onSurface,
-                              fontWeight: FontWeight.w600,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [bannerStart(), bannerEnd()],
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.25),
+                              width: 1,
                             ),
                           ),
+                          clipBehavior: Clip.antiAlias,
+                          alignment: Alignment.center,
+                          child: MerchantLogo(
+                            logoUrl: _offer.merchantLogoUrl,
+                            initial: _offer.merchantInitial,
+                            size: 56,
+                          ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
                         Text(
                           _offer.merchantName.toUpperCase(),
                           style: const TextStyle(
@@ -187,6 +228,28 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
                               fontSize: 13,
                               color: Colors.white,
                               fontWeight: FontWeight.w400),
+                        ),
+                        const SizedBox(height: 10),
+                        // Category chip — solid dark bg so text is always readable
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.45),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.25),
+                            ),
+                          ),
+                          child: Text(
+                            _offer.category,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -232,7 +295,7 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
 
                 // Qualifying cards
                 Text('Applicable on', style: theme.textTheme.titleLarge),
-                SizedBox(height: tokens.s12),
+                SizedBox(height: tokens.s8),
                 if (qualifying.isNotEmpty) ...[
                   Row(
                     children: [
@@ -249,30 +312,41 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
                       ),
                     ],
                   ),
-                  SizedBox(height: tokens.s10),
-                  SizedBox(
-                    height: 120,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: qualifying.length,
-                      separatorBuilder: (_, __) => SizedBox(width: tokens.s8),
-                      itemBuilder: (_, i) => CreditCardVisual(
-                        card: qualifying[i],
-                        size: CardSize.sm,
-                      ),
-                    ),
-                  ),
                   SizedBox(height: tokens.s12),
                 ],
-                // All eligible cards
-                ...(_offer.eligibleCards.map((ec) {
-                  final owned = qualifying.any((uc) =>
-                      uc.cardTypeId == ec.cardTypeId);
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: tokens.s8),
-                    child: _EligibleCardRow(ec: ec, owned: owned),
-                  );
-                })),
+                if (_offer.eligibleCards.isNotEmpty)
+                  _EligibleCardsCarousel(
+                    controller: _eligibleController,
+                    eligibleCards: _offer.eligibleCards,
+                    ownedCards: qualifying,
+                    cardForEligible: _cardForEligible,
+                  )
+                else
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: tokens.s16, vertical: tokens.s20),
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerLow,
+                      borderRadius: tokens.brMd,
+                      border: Border.all(color: cs.outlineVariant),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.credit_card_off_rounded,
+                            size: 18, color: cs.onSurfaceVariant),
+                        SizedBox(width: tokens.s8),
+                        Text(
+                          'No cards available',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: cs.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
                 SizedBox(height: tokens.s24),
 
@@ -400,81 +474,100 @@ class _StatTile extends StatelessWidget {
   }
 }
 
-// ── Eligible card row ─────────────────────────────────────────────────────────
+// ── Eligible cards carousel ──────────────────────────────────────────────────
 
-class _EligibleCardRow extends StatelessWidget {
-  const _EligibleCardRow({required this.ec, required this.owned});
-  final EligibleCard ec;
-  final bool owned;
+class _EligibleCardsCarousel extends StatelessWidget {
+  const _EligibleCardsCarousel({
+    required this.controller,
+    required this.eligibleCards,
+    required this.ownedCards,
+    required this.cardForEligible,
+  });
+
+  final PageController controller;
+  final List<EligibleCard> eligibleCards;
+  final List<UserCard> ownedCards;
+  final UserCard Function(EligibleCard ec, List<UserCard> owned) cardForEligible;
 
   @override
   Widget build(BuildContext context) {
-    final theme  = Theme.of(context);
-    final cs     = theme.colorScheme;
-    final tokens = theme.tokens;
-    const ownedColor = Color(0xFF277A50);
+    return SizedBox(
+      height: 180,
+      child: PageView.builder(
+        controller: controller,
+        clipBehavior: Clip.none,
+        padEnds: false,
+        physics: const BouncingScrollPhysics(),
+        itemCount: eligibleCards.length,
+        itemBuilder: (context, index) {
+          final ec    = eligibleCards[index];
+          final isOwned = ownedCards.any((uc) => uc.cardTypeId == ec.cardTypeId);
+          final card  = cardForEligible(ec, ownedCards);
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: tokens.s12, vertical: tokens.s10),
-      decoration: BoxDecoration(
-        color: owned
-            ? ownedColor.withOpacity(0.05)
-            : cs.surfaceContainerLowest,
-        border: Border.all(
-          color: owned ? ownedColor.withOpacity(0.3) : cs.outlineVariant,
-        ),
-        borderRadius: tokens.brMd,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: cs.primary,
-              borderRadius: tokens.brMd,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              ec.bankName.isNotEmpty ? ec.bankName[0] : '?',
-              style: TextStyle(
-                color: cs.onPrimary,
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
-              ),
-            ),
-          ),
-          SizedBox(width: tokens.s12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(ec.bankName, style: theme.textTheme.labelMedium),
-                Text('${ec.network} · ${ec.productName}',
-                    style: theme.textTheme.labelSmall
-                        ?.copyWith(color: cs.onSurfaceVariant)),
-              ],
-            ),
-          ),
-          if (owned)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: ownedColor,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: const Text(
-                'YOUR CARD',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 0.5,
+          return AnimatedBuilder(
+            animation: controller,
+            builder: (context, child) {
+              double page = index.toDouble();
+              if (controller.position.haveDimensions) {
+                page = controller.page ?? index.toDouble();
+              }
+              final delta   = page - index;
+              final scale   = 1.0 - (delta.abs() * 0.08).clamp(0.0, 0.15);
+              final opacity = 1.0 - (delta.abs() * 0.4).clamp(0.0, 0.5);
+              return Transform.scale(
+                scale: scale,
+                alignment: Alignment.centerLeft,
+                child: Opacity(opacity: opacity, child: child),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12, top: 4, bottom: 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: SizedBox(
+                  width: 272,
+                  height: 168,
+                  child: Stack(
+                    clipBehavior: Clip.hardEdge,
+                    children: [
+                      CreditCardVisual(card: card, size: CardSize.md),
+                      if (isOwned)
+                        Positioned(
+                          top: 10,
+                          right: 10,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF277A50),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.check_circle_rounded,
+                                    size: 10, color: Colors.white),
+                                SizedBox(width: 4),
+                                Text(
+                                  'YOUR CARD',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
-        ],
+          );
+        },
       ),
     );
   }

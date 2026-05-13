@@ -395,7 +395,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cardibee_flutter/core/routing/app_routes.dart';
-import 'package:cardibee_flutter/core/theme/app_tokens.dart'; 
+import 'package:cardibee_flutter/core/theme/app_tokens.dart';
+import 'package:cardibee_flutter/core/widgets/merchant_logo.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
 import 'package:cardibee_flutter/features/offers/providers/favorites_notifier.dart';
 
@@ -455,20 +456,25 @@ class _FeaturedOfferCard extends StatelessWidget {
           child: Stack(
             children:[
               const Positioned.fill(child: _GradientOverlay()),
-              // Category badge — top right
+              // Category badge — top right (dark translucent so text is readable on any banner)
               Positioned(
                 top: 12, right: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.95),
+                    color: Colors.black.withValues(alpha: 0.45),
                     borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.25),
+                    ),
                   ),
                   child: Text(
                     offer.category,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
+                    style: const TextStyle(
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: 0.3,
                     ),
                   ),
                 ),
@@ -571,7 +577,7 @@ class _DefaultOfferCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children:[
-              // ── Gradient Logo Square ──
+              // ── Gradient Logo Square (logo image if available, else initial) ──
               Container(
                 width: 64,
                 height: 64,
@@ -579,14 +585,12 @@ class _DefaultOfferCard extends StatelessWidget {
                   gradient: logoGradient,
                   borderRadius: BorderRadius.circular(16),
                 ),
+                clipBehavior: Clip.antiAlias,
                 alignment: Alignment.center,
-                child: Text(
-                  offer.merchantInitial,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: MerchantLogo(
+                  logoUrl: offer.merchantLogoUrl,
+                  initial: offer.merchantInitial,
+                  size: 64,
                 ),
               ),
               const SizedBox(width: 16),

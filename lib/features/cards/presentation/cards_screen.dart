@@ -23,8 +23,12 @@ class CardsScreen extends ConsumerWidget {
       backgroundColor: cs.surface,
       body: SafeArea(
         child: state.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error:   (e, _) => Center(child: Text(e.toString())),
+          loading: () => const _CardsSkeleton(showRetry: false),
+          error:   (e, _) => _CardsSkeleton(
+            showRetry: true,
+            message: e.toString(),
+            onRetry: () => ref.invalidate(cardsNotifierProvider),
+          ),
           data:    (cards) => Stack(
             children: [
               CustomScrollView(
@@ -253,3 +257,95 @@ class _GlassCompareButton extends StatelessWidget {
 
 
 // test bottom dont change under
+
+// ── Loading / error skeleton ─────────────────────────────────────────────────
+
+class _CardsSkeleton extends StatelessWidget {
+  const _CardsSkeleton({
+    required this.showRetry,
+    this.message,
+    this.onRetry,
+  });
+
+  final bool showRetry;
+  final String? message;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme  = Theme.of(context);
+    final cs     = theme.colorScheme;
+    final tokens = theme.tokens;
+
+    return ListView(
+      padding: EdgeInsets.fromLTRB(
+          tokens.s20, tokens.s8, tokens.s20, tokens.s24),
+      children: [
+        Text('My cards', style: theme.textTheme.headlineLarge),
+        Text(
+          showRetry
+              ? (message ?? 'Couldn\'t load your cards.')
+              : 'Loading your wallet…',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: showRetry ? cs.error : cs.onSurfaceVariant,
+          ),
+        ),
+        SizedBox(height: tokens.s24),
+        for (var i = 0; i < 3; i++)
+          Padding(
+            padding: EdgeInsets.only(bottom: tokens.s20),
+            child: _SkeletonCard(),
+          ),
+        if (showRetry && onRetry != null) ...[
+          SizedBox(height: tokens.s8),
+          Center(
+            child: FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('Tap to retry'),
+              style: FilledButton.styleFrom(
+                backgroundColor: cs.primary,
+                foregroundColor: cs.onPrimary,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 32, vertical: 12),
+                shape: const StadiumBorder(),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _SkeletonCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final cs     = Theme.of(context).colorScheme;
+    final tokens = Theme.of(context).tokens;
+
+    return Column(
+      children: [
+        Container(
+          height: 196,
+          decoration: BoxDecoration(
+            color: cs.surfaceContainerHigh,
+            borderRadius: tokens.brLg,
+          ),
+        )
+            .animate(onPlay: (c) => c.repeat(reverse: true))
+            .fadeIn(duration: 700.ms, begin: 0.5),
+        SizedBox(height: tokens.s8),
+        Container(
+          height: 44,
+          decoration: BoxDecoration(
+            color: cs.surfaceContainerLow,
+            borderRadius: tokens.brLg,
+          ),
+        )
+            .animate(onPlay: (c) => c.repeat(reverse: true))
+            .fadeIn(duration: 700.ms, begin: 0.5),
+      ],
+    );
+  }
+}

@@ -10,6 +10,7 @@ class UserCard {
     this.nickname,
     this.lastDigits,        // 4–6 digits only — never full card number
     this.gradient = 'navy',
+    this.cardImage,
     this.isDefault = false,
     this.activeOfferCount = 0,
     required this.createdAt,
@@ -25,6 +26,7 @@ class UserCard {
   final String? nickname;
   final String? lastDigits;
   final String gradient;   // 'navy' | 'emerald' | 'burgundy' | 'graphite'
+  final String? cardImage; // Absolute URL of card art served by backend
   final bool isDefault;
   final int activeOfferCount;
   final String createdAt;
@@ -42,6 +44,7 @@ class UserCard {
     nickname:         j['nickname'] as String?,
     lastDigits:       j['last_digits'] as String?,
     gradient:         j['gradient'] as String? ?? 'navy',
+    cardImage:        j['card_image'] as String?,
     isDefault:        j['is_default'] as bool? ?? false,
     activeOfferCount: j['active_offer_count'] as int? ?? 0,
     createdAt:        j['created_at'] as String,
@@ -53,13 +56,16 @@ class UserCard {
     'network': network, 'type': type,
     if (nickname != null) 'nickname': nickname,
     if (lastDigits != null) 'last_digits': lastDigits,
-    'gradient': gradient, 'is_default': isDefault,
+    'gradient': gradient,
+    if (cardImage != null) 'card_image': cardImage,
+    'is_default': isDefault,
     'active_offer_count': activeOfferCount, 'created_at': createdAt,
   };
 
   UserCard copyWith({
     String? nickname,
     String? gradient,
+    String? cardImage,
     bool? isDefault,
     int? activeOfferCount,
   }) => UserCard(
@@ -69,6 +75,7 @@ class UserCard {
     nickname: nickname ?? this.nickname,
     lastDigits: lastDigits,
     gradient: gradient ?? this.gradient,
+    cardImage: cardImage ?? this.cardImage,
     isDefault: isDefault ?? this.isDefault,
     activeOfferCount: activeOfferCount ?? this.activeOfferCount,
     createdAt: createdAt,

@@ -539,6 +539,7 @@
 //glass effect txt
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:cardibee_flutter/core/network/asset_url.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/network_logo.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
@@ -611,12 +612,7 @@ class CreditCardVisual extends StatelessWidget {
             height: h,
             decoration: BoxDecoration(
               borderRadius: tokens.brLg,
-              gradient: fallbackGradient, 
-              image: const DecorationImage(
-                // DYNAMIC: Swap this to your network or asset property if you have one.
-                image: AssetImage('assets/images/City_Bank_Amex_Gold_Corporate.png'),
-                fit: BoxFit.fill,
-              ),
+              gradient: fallbackGradient,
               boxShadow:[
                 BoxShadow(
                   color: Colors.black.withOpacity(0.2),
@@ -625,9 +621,21 @@ class CreditCardVisual extends StatelessWidget {
                 ),
               ],
             ),
-            clipBehavior: Clip.hardEdge, 
+            clipBehavior: Clip.hardEdge,
             child: Stack(
               children:[
+                // 0. Card art from backend — overlays gradient. On null/error → gradient shows through.
+                if (card.cardImage != null && card.cardImage!.isNotEmpty)
+                  Positioned.fill(
+                    child: Image.network(
+                      resolveAssetUrl(card.cardImage!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      loadingBuilder: (_, child, progress) =>
+                          progress == null ? child : const SizedBox.shrink(),
+                    ),
+                  ),
+
                 // 1. Bank and Card Name (Individual Glass Effects)
                 Positioned(
                   // Offsetting to compensate for the individual glass container's padding
