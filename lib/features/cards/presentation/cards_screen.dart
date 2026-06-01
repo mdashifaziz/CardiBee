@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cardibee_flutter/core/routing/app_routes.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/credit_card_visual.dart';
+import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
 
@@ -120,7 +121,7 @@ class _CardTile extends ConsumerWidget {
           child: CreditCardVisual(
             card: card,
             size: CardSize.lg,
-            onTap: () => context.go('${AppRoutes.myOffers}?card=${card.id}'),
+            onTap: () => context.go('${AppRoutes.myOffers}?card=${card.cardTypeId}'),
           ),
         ),
         SizedBox(height: tokens.s8),
@@ -170,7 +171,7 @@ class _CardTile extends ConsumerWidget {
                 button: true,
                 child: IconButton(
                   onPressed: () =>
-                      context.go('${AppRoutes.myOffers}?card=${card.id}'),
+                      context.go('${AppRoutes.myOffers}?card=${card.cardTypeId}'),
                   icon: const Icon(Icons.chevron_right_rounded),
                   color: cs.onPrimary,
                   style: IconButton.styleFrom(
@@ -321,30 +322,16 @@ class _CardsSkeleton extends StatelessWidget {
 class _SkeletonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final cs     = Theme.of(context).colorScheme;
     final tokens = Theme.of(context).tokens;
-
     return Column(
       children: [
-        Container(
-          height: 196,
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerHigh,
-            borderRadius: tokens.brLg,
-          ),
-        )
-            .animate(onPlay: (c) => c.repeat(reverse: true))
-            .fadeIn(duration: 700.ms, begin: 0.5),
+        const SkeletonCreditCard(),
         SizedBox(height: tokens.s8),
-        Container(
+        SkeletonBox(
           height: 44,
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerLow,
-            borderRadius: tokens.brLg,
-          ),
-        )
-            .animate(onPlay: (c) => c.repeat(reverse: true))
-            .fadeIn(duration: 700.ms, begin: 0.5),
+          radius: tokens.radiusLg,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+        ),
       ],
     );
   }

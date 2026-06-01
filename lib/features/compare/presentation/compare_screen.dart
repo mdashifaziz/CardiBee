@@ -5,6 +5,7 @@ import 'package:cardibee_flutter/core/routing/app_routes.dart';
 import 'package:cardibee_flutter/core/theme/app_colors.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/credit_card_visual.dart';
+import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
@@ -145,7 +146,34 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
               0 => const _CompareEmptyState(),
               1 => _OneCardState(card: _selected.first),
               _ => !_offersLoaded
-                  ? const Center(child: CircularProgressIndicator())
+                  ? Padding(
+                      padding: EdgeInsets.all(tokens.s20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: SkeletonBox(
+                                  height: 120, radius: tokens.radiusLg),
+                              ),
+                              SizedBox(width: tokens.s12),
+                              Expanded(
+                                child: SkeletonBox(
+                                  height: 120, radius: tokens.radiusLg),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: tokens.s20),
+                          const SkeletonLine(width: 140, height: 16),
+                          SizedBox(height: tokens.s12),
+                          for (int i = 0; i < 4; i++) ...[
+                            SkeletonBox(height: 56, radius: tokens.radiusMd),
+                            SizedBox(height: tokens.s8),
+                          ],
+                        ],
+                      ),
+                    )
                   : _CompareResult(
                       cardA: _selected[0],
                       cardB: _selected[1],

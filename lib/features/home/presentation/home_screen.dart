@@ -11,6 +11,7 @@ import 'package:cardibee_flutter/core/theme/theme_provider.dart';
 import 'package:cardibee_flutter/core/widgets/credit_card_visual.dart';
 import 'package:cardibee_flutter/core/widgets/offer_card_widget.dart';
 import 'package:cardibee_flutter/features/auth/providers/auth_provider.dart';
+import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
@@ -95,7 +96,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final expiring = _allOffers.where((o) => o.daysLeft <= 7).take(3).toList();
 
     if (cardsAsync.isLoading && !cardsAsync.hasValue) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: cs.surface,
+        body: SafeArea(
+          child: ListView(
+            padding: EdgeInsets.fromLTRB(
+                tokens.s16, tokens.s8, tokens.s16, tokens.s24),
+            children: [
+              // Header placeholder
+              Row(
+                children: [
+                  const SkeletonCircle(size: 40),
+                  SizedBox(width: tokens.s12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SkeletonLine(width: 120, height: 14),
+                        SizedBox(height: 6),
+                        SkeletonLine(width: 80, height: 10),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: tokens.s24),
+              // Hero wallet card placeholder
+              SkeletonBox(height: 220, radius: tokens.radiusXl),
+              SizedBox(height: tokens.s24),
+              // Section title
+              const SkeletonLine(width: 140, height: 18),
+              SizedBox(height: tokens.s12),
+              // Offer list placeholders
+              for (int i = 0; i < 3; i++) ...[
+                const SkeletonOfferCard(),
+                SizedBox(height: tokens.s8),
+              ],
+            ],
+          ),
+        ),
+      );
     }
 
     return Scaffold(

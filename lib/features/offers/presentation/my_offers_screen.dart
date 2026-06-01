@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:cardibee_flutter/core/routing/app_routes.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/offer_card_widget.dart';
+import 'package:cardibee_flutter/core/widgets/skeleton.dart';
+import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
 import 'package:cardibee_flutter/features/offers/providers/offers_provider.dart';
 
@@ -96,6 +98,9 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
     final theme  = Theme.of(context);
     final cs     = theme.colorScheme;
     final tokens = theme.tokens;
+
+    final hasCards =
+        ref.watch(cardsNotifierProvider).valueOrNull?.isNotEmpty ?? false;
 
     const cats = ['All', 'Food', 'Travel', 'Shopping', 'Groceries', 'Entertainment', 'Health'];
 
@@ -196,11 +201,13 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
             // List
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const SkeletonOfferList()
                   : _offers.isEmpty
-                      ? _EmptyState(
-                          onAddCard: () => context.push(AppRoutes.addCard),
-                        )
+                      ? (hasCards
+                          ? const _NoOffersState()
+                          : _EmptyState(
+                              onAddCard: () => context.push(AppRoutes.addCard),
+                            ))
                       : ListView.separated(
                           controller: _scrollCtrl,
                           padding: EdgeInsets.fromLTRB(
@@ -263,6 +270,45 @@ class _EmptyState extends StatelessWidget {
               onPressed: onAddCard,
               icon: const Icon(Icons.add_rounded, size: 18),
               label: const Text('Add card'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NoOffersState extends StatelessWidget {
+  const _NoOffersState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme  = Theme.of(context);
+    final cs     = theme.colorScheme;
+    final tokens = theme.tokens;
+
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(tokens.s32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72, height: 72,
+              decoration: BoxDecoration(
+                color: cs.primary.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Icon(Icons.local_offer_outlined, size: 36, color: cs.primary),
+            ),
+            SizedBox(height: tokens.s20),
+            Text('No offers for you yet', style: theme.textTheme.headlineSmall),
+            SizedBox(height: tokens.s8),
+            Text(
+              'We\'ll let you know as soon as new offers match your cards.',
+              style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+              textAlign: TextAlign.center,
             ),
           ],
         ),

@@ -1,27 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cardibee_flutter/core/routing/app_routes.dart';
+import 'package:cardibee_flutter/core/storage/prefs_storage.dart';
+import 'package:cardibee_flutter/core/storage/token_storage.dart';
 import 'package:cardibee_flutter/core/theme/app_colors.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/theme/app_typography.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
+  bool _navigated = false;
+  bool _isReturningUser = false;
+
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 1800), () {
-      // Navigate to home; the router redirect redirects to onboarding/auth
-      // automatically if the user isn't onboarded or authenticated yet.
-      if (mounted) context.go(AppRoutes.home);
+    _detectReturningUser();
+    Future.delayed(const Duration(milliseconds: 3300), _proceed);
+  }
+
+  Future<void> _detectReturningUser() async {
+    final prefs   = ref.read(prefsStorageProvider);
+    final storage = ref.read(tokenStorageProvider);
+    final hasTokens = await storage.hasTokens();
+    if (!mounted) return;
+    setState(() {
+      _isReturningUser = prefs.hasOnboarded && hasTokens;
     });
+  }
+
+  void _proceed() {
+    if (_navigated || !mounted) return;
+    _navigated = true;
+    // Navigate to home; the router redirect sends totally-new users to
+    // onboarding, onboarded-but-logged-out users to auth, and authed
+    // users straight through to home.
+    context.go(AppRoutes.home);
   }
 
   @override
@@ -117,16 +139,54 @@ class _SplashScreenState extends State<SplashScreen> {
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 40),
-                child: Text(
-                  'CARD OFFERS · ANY BRAND · ANYTIME',
-                  style: TextStyle(
-                    fontFamily: AppFonts.sans,
-                    fontSize: 9,
-                    letterSpacing: 2.5,
-                    color: Colors.white.withOpacity(0.35),
-                  ),
-                ).animate().fadeIn(delay: 600.ms, duration: 400.ms),
+                padding: const EdgeInsets.only(bottom: 40, left: 24, right: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Get started button — only for new / logged-out users.
+                    // Returning authed users just see the splash visual and
+                    // get auto-redirected after 3.3s.
+                    if (!_isReturningUser)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: FilledButton(
+                          onPressed: _proceed,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.beeYellow,
+                            foregroundColor: const Color(0xFF131B4D),
+                            shape: const StadiumBorder(),
+                            textStyle: const TextStyle(
+                              fontFamily: AppFonts.sans,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Get started'),
+                              SizedBox(width: 6),
+                              Icon(Icons.arrow_forward_rounded, size: 18),
+                            ],
+                          ),
+                        ),
+                      ).animate().fadeIn(delay: 600.ms, duration: 400.ms)
+                          .slideY(begin: 0.3, end: 0, curve: Curves.easeOut),
+                    if (!_isReturningUser) const SizedBox(height: 16),
+                    Text(
+                      'CARD OFFERS · ANY BRAND · ANYTIME',
+                      style: TextStyle(
+                        fontFamily: AppFonts.sans,
+                        fontSize: 9,
+                        letterSpacing: 2.5,
+                        color: Colors.white.withOpacity(0.35),
+                      ),
+                    ).animate().fadeIn(delay: 800.ms, duration: 400.ms),
+                  ],
+                ),
               ),
             ),
           ],

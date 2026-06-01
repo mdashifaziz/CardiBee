@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cardibee_flutter/core/theme/app_colors.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/credit_card_visual.dart';
+import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
@@ -112,7 +113,20 @@ class _BestCardScreenState extends ConsumerState<BestCardScreen> {
           SizedBox(height: tokens.s16),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? ListView.separated(
+                    padding: EdgeInsets.fromLTRB(
+                        tokens.s20, 0, tokens.s20, tokens.s24),
+                    itemCount: 3,
+                    separatorBuilder: (_, __) => SizedBox(height: tokens.s12),
+                    itemBuilder: (_, __) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SkeletonCreditCard(height: 168),
+                        SizedBox(height: tokens.s8),
+                        const SkeletonLine(width: 180, height: 12),
+                      ],
+                    ),
+                  )
                 : (_results == null || _results!.isEmpty)
                     ? _EmptyState()
                     : ListView.separated(

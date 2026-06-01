@@ -49,9 +49,9 @@ final class ApiAuthRepository implements AuthRepository {
         gender: gender,
       );
       return (
-        accessToken: data['access'] as String,
-        refreshToken: data['refresh'] as String,
-        username: data['username'] as String,
+        accessToken: (data['access_token'] ?? data['access']) as String,
+        refreshToken: (data['refresh_token'] ?? data['refresh']) as String,
+        username: (data['username'] as String?) ?? username,
       );
     } catch (e) {
       throw mapError(e);

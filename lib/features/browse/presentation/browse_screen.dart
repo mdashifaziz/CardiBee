@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cardibee_flutter/core/error/app_failure.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/offer_card_widget.dart';
+import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
 import 'package:cardibee_flutter/features/offers/providers/offers_provider.dart';
 
@@ -194,7 +195,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
             // Offer list
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const SkeletonOfferList()
                   : _error != null
                       ? Center(
                           child: Padding(

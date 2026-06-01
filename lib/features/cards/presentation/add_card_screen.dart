@@ -8,6 +8,7 @@ import 'package:cardibee_flutter/core/theme/app_colors.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/credit_card_visual.dart';
 import 'package:cardibee_flutter/core/widgets/network_logo.dart';
+import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
 
@@ -228,7 +229,7 @@ class _StepBank extends ConsumerWidget {
         Text('Choose your bank', style: theme.textTheme.headlineSmall),
         SizedBox(height: tokens.s16),
         banks.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => _BankTypeSkeleton(),
           error: (e, _) => _ApiUnavailable(onRetry: () => ref.invalidate(banksProvider)),
           data: (list) => list.isEmpty
               ? const _ApiUnavailable()
@@ -322,7 +323,7 @@ class _StepProduct extends ConsumerWidget {
         Text('Pick your card product', style: theme.textTheme.headlineSmall),
         SizedBox(height: tokens.s16),
         types.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => _BankTypeSkeleton(),
           error: (e, _) => _ApiUnavailable(onRetry: () => ref.invalidate(cardTypesProvider(bankId))),
           data: (list) => list.isEmpty
               ? const _ApiUnavailable()
@@ -644,6 +645,36 @@ class _StepStyle extends StatelessWidget {
 }
 
 // ── Shared ────────────────────────────────────────────────────────────────────
+
+class _BankTypeSkeleton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final tokens = Theme.of(context).tokens;
+    return Column(
+      children: [
+        for (int i = 0; i < 5; i++) ...[
+          Row(
+            children: [
+              const SkeletonCircle(size: 36),
+              SizedBox(width: tokens.s12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SkeletonLine(width: 140, height: 13),
+                    SizedBox(height: tokens.s6),
+                    const SkeletonLine(width: 80, height: 10),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: tokens.s16),
+        ],
+      ],
+    );
+  }
+}
 
 class _ApiUnavailable extends StatelessWidget {
   const _ApiUnavailable({this.onRetry});

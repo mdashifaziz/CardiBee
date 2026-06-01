@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cardibee_flutter/core/routing/app_routes.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
+import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/notifications/providers/notifications_provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -75,7 +76,34 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? ListView.separated(
+              padding: EdgeInsets.symmetric(
+                  horizontal: tokens.s16, vertical: tokens.s12),
+              itemCount: 6,
+              separatorBuilder: (_, __) => SizedBox(height: tokens.s8),
+              itemBuilder: (_, __) => Padding(
+                padding: EdgeInsets.symmetric(vertical: tokens.s8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SkeletonCircle(size: 40),
+                    SizedBox(width: tokens.s12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SkeletonLine(height: 14),
+                          SizedBox(height: tokens.s6),
+                          const SkeletonLine(width: 220, height: 10),
+                          SizedBox(height: tokens.s6),
+                          const SkeletonLine(width: 80, height: 8),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
           : _items.isEmpty
               ? _EmptyNotifications()
               : ListView.separated(

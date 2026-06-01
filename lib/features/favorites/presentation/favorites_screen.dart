@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/offer_card_widget.dart';
+import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
 import 'package:cardibee_flutter/features/offers/providers/favorites_notifier.dart';
 import 'package:cardibee_flutter/features/offers/providers/offers_provider.dart';
@@ -58,7 +59,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const SkeletonOfferList()
           : visible.isEmpty
               ? _EmptyFavorites()
               : ListView.separated(

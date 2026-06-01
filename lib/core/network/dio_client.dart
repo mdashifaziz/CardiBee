@@ -39,7 +39,7 @@ Dio buildDioClient(TokenStorage tokenStorage) {
       dio: dio,
       onForceLogout: _notifyForceLogout,
     ),
-    if (Env.isDev) _LoggingInterceptor(),
+    if (Env.isDev || Env.isDevStaging) _LoggingInterceptor(),
   ]);
 
   return dio;

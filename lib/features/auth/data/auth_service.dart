@@ -142,7 +142,19 @@ class AuthService {
   String? _message(DioException e) {
     final body = e.response?.data;
     if (body is Map<String, dynamic>) {
-      return (body['message'] ?? body['detail'])?.toString();
+      final direct = (body['message'] ?? body['detail'])?.toString();
+      if (direct != null && direct.isNotEmpty) return direct;
+
+      // DRF-style field errors: { "email": ["..."], "username": ["..."] }
+      final parts = <String>[];
+      body.forEach((key, value) {
+        if (value is List && value.isNotEmpty) {
+          parts.add(value.map((v) => v.toString()).join(' '));
+        } else if (value is String && value.isNotEmpty) {
+          parts.add(value);
+        }
+      });
+      if (parts.isNotEmpty) return parts.join('\n');
     }
     return null;
   }

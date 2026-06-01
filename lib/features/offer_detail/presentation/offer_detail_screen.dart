@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/credit_card_visual.dart';
 import 'package:cardibee_flutter/core/widgets/merchant_logo.dart';
+import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
@@ -22,7 +23,7 @@ class OfferDetailScreen extends ConsumerWidget {
       future: ref.read(offersRepositoryProvider).getOffer(offerId),
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const _OfferDetailSkeleton();
         }
         if (snap.hasError || !snap.hasData) {
           return Scaffold(
@@ -598,4 +599,76 @@ class _GlassBtn extends StatelessWidget {
       ),
     ),
   );
+}
+
+// ── Offer-detail loading skeleton ────────────────────────────────────────────
+
+class _OfferDetailSkeleton extends StatelessWidget {
+  const _OfferDetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs     = Theme.of(context).colorScheme;
+    final tokens = Theme.of(context).tokens;
+
+    return Scaffold(
+      backgroundColor: cs.surface,
+      body: CustomScrollView(
+        slivers: [
+          // Banner skeleton
+          SliverToBoxAdapter(
+            child: SkeletonBox(
+              height: 240,
+              radius: 0,
+              color: cs.surfaceContainerHigh,
+            ),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.all(tokens.s20),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                // Stats grid (4 tiles)
+                Row(
+                  children: [
+                    Expanded(child: SkeletonBox(height: 72, radius: tokens.radiusMd)),
+                    SizedBox(width: tokens.s8),
+                    Expanded(child: SkeletonBox(height: 72, radius: tokens.radiusMd)),
+                    SizedBox(width: tokens.s8),
+                    Expanded(child: SkeletonBox(height: 72, radius: tokens.radiusMd)),
+                    SizedBox(width: tokens.s8),
+                    Expanded(child: SkeletonBox(height: 72, radius: tokens.radiusMd)),
+                  ],
+                ),
+                SizedBox(height: tokens.s24),
+                // Applicable on title
+                const SkeletonLine(width: 160, height: 22),
+                SizedBox(height: tokens.s12),
+                // Eligible card carousel placeholder
+                SkeletonBox(height: 180, radius: tokens.radiusLg),
+                SizedBox(height: tokens.s24),
+                // About title + paragraph lines
+                const SkeletonLine(width: 140, height: 18),
+                SizedBox(height: tokens.s8),
+                const SkeletonLine(height: 12),
+                SizedBox(height: tokens.s6),
+                const SkeletonLine(height: 12),
+                SizedBox(height: tokens.s6),
+                const SkeletonLine(width: 220, height: 12),
+                SizedBox(height: tokens.s24),
+                // Terms
+                const SkeletonLine(width: 180, height: 18),
+                SizedBox(height: tokens.s8),
+                const SkeletonLine(height: 10),
+                SizedBox(height: tokens.s6),
+                const SkeletonLine(height: 10),
+                SizedBox(height: tokens.s24),
+                // CTA
+                SkeletonBox(height: 56, radius: tokens.radiusMd),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
