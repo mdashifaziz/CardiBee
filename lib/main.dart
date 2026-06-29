@@ -4,8 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cardibee_flutter/app/app.dart';
+import 'package:cardibee_flutter/core/notifications/push_notification_service.dart';
 import 'package:cardibee_flutter/core/storage/prefs_storage.dart';
 import 'package:cardibee_flutter/core/storage/token_storage.dart';
 import 'package:cardibee_flutter/core/env/env.dart';
@@ -34,6 +36,8 @@ Future<void> main() async {
   if (!Env.useMockApi) {
     try {
       await Firebase.initializeApp();
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      await PushNotificationService.instance.init();
     } catch (e) {
       debugPrint('[CardiBee] Firebase init skipped: $e');
     }

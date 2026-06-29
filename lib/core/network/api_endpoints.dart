@@ -17,4 +17,10 @@ abstract final class ApiEndpoints {
   static String offer(String id)            => 'nucleus/offers/$id/';
   static String saveOffer(String id)        => 'nucleus/offers/$id/save/';
   static const String savedOffers           = 'nucleus/offers/saved/';
+
+  // Simple portal-pushed notifications shown in the in-app list.
+  static const String notifications            = 'nucleus/notifications/android/';
+  static String notificationRead(String id)    => 'nucleus/notifications/$id/read/';
+  static const String notificationsReadAll     = 'nucleus/notifications/read-all/';
+  static const String notificationPreferences  = 'nucleus/notifications/preferences/';
 }

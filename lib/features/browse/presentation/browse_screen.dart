@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cardibee_flutter/core/error/app_failure.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
+import 'package:cardibee_flutter/core/widgets/error_retry_view.dart';
 import 'package:cardibee_flutter/core/widgets/offer_card_widget.dart';
 import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
@@ -196,66 +197,58 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
             Expanded(
               child: _loading
                   ? const SkeletonOfferList()
-                  : _error != null
-                      ? Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(tokens.s24),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('Failed to load offers',
-                                    style: theme.textTheme.titleMedium),
-                                SizedBox(height: tokens.s8),
-                                Text(_error!,
-                                    style: theme.textTheme.bodySmall
-                                        ?.copyWith(color: cs.error),
-                                    textAlign: TextAlign.center),
-                                SizedBox(height: tokens.s16),
-                                FilledButton(
-                                    onPressed: _loadAll,
-                                    child: const Text('Retry')),
-                              ],
-                            ),
-                          ),
-                        )
-                      : results.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(tokens.s32),
-                            child: Container(
-                              padding: EdgeInsets.all(tokens.s24),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: cs.outlineVariant,
-                                  style: BorderStyle.solid,
+                  : RefreshIndicator(
+                      onRefresh: _loadAll,
+                      child: _error != null
+                          ? ScrollFill(
+                              child: ErrorRetryView(
+                                title: 'Failed to load offers',
+                                message: _error,
+                                onRetry: _loadAll,
+                              ),
+                            )
+                          : results.isEmpty
+                              ? ScrollFill(
+                                  child: Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(tokens.s32),
+                                      child: Container(
+                                        padding: EdgeInsets.all(tokens.s24),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: cs.outlineVariant,
+                                            style: BorderStyle.solid,
+                                          ),
+                                          borderRadius: tokens.brXl,
+                                        ),
+                                        child: Text(
+                                          'No offers match your search.',
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(color: cs.onSurfaceVariant),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : ListView.separated(
+                                  controller: _scrollCtrl,
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  padding: EdgeInsets.fromLTRB(
+                                      tokens.s20, 0, tokens.s20, tokens.s24),
+                                  itemCount: results.length + (_loadingMore ? 1 : 0),
+                                  separatorBuilder: (_, __) => SizedBox(height: tokens.s8),
+                                  itemBuilder: (_, i) {
+                                    if (i == results.length) {
+                                      return const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 16),
+                                        child: Center(child: CircularProgressIndicator()),
+                                      );
+                                    }
+                                    return OfferCardWidget(offer: results[i]);
+                                  },
                                 ),
-                                borderRadius: tokens.brXl,
-                              ),
-                              child: Text(
-                                'No offers match your search.',
-                                style: theme.textTheme.bodyMedium
-                                    ?.copyWith(color: cs.onSurfaceVariant),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        )
-                      : ListView.separated(
-                          controller: _scrollCtrl,
-                          padding: EdgeInsets.fromLTRB(
-                              tokens.s20, 0, tokens.s20, tokens.s24),
-                          itemCount: results.length + (_loadingMore ? 1 : 0),
-                          separatorBuilder: (_, __) => SizedBox(height: tokens.s8),
-                          itemBuilder: (_, i) {
-                            if (i == results.length) {
-                              return const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16),
-                                child: Center(child: CircularProgressIndicator()),
-                              );
-                            }
-                            return OfferCardWidget(offer: results[i]);
-                          },
-                        ),
+                    ),
             ),
           ],
         ),

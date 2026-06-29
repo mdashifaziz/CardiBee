@@ -67,6 +67,20 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
     ref.read(favoritesProvider.notifier).toggle(_offer.id);
   }
 
+  // '2026-12-31T23:59:59+00:00' → '31 Dec 2026, 11:59 PM'
+  String _formatValidUntil(String raw) {
+    final dt = DateTime.tryParse(raw);
+    if (dt == null) return raw;
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    final hour12 = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final ampm   = dt.hour < 12 ? 'AM' : 'PM';
+    return '${dt.day} ${months[dt.month - 1]} ${dt.year}, $hour12:$minute $ampm';
+  }
+
   // Build a UserCard suitable for visual rendering. If the user owns this
   // card type, return their actual UserCard (with image / lastDigits). Else
   // synthesize a placeholder so CreditCardVisual can render bank/product.
@@ -151,7 +165,7 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Gradient
+                  // Gradient (fallback when no banner image / while loading / on error)
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -161,6 +175,14 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
                       ),
                     ),
                   ),
+                  // Banner image (full-bleed) if provided
+                  if (_offer.bannerImageUrl != null &&
+                      _offer.bannerImageUrl!.isNotEmpty)
+                    Image.network(
+                      _offer.bannerImageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
                   // Scrim
                   const DecoratedBox(
                     decoration: BoxDecoration(
@@ -265,31 +287,34 @@ class _OfferDetailBodyState extends ConsumerState<_OfferDetailBody> {
             padding: EdgeInsets.all(tokens.s20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Stats grid
-                Row(
-                  children: [
-                    _StatTile(
-                      icon: Icons.calendar_today_rounded,
-                      label: 'Valid until',
-                      value: _offer.validUntil,
-                    ),
-                    SizedBox(width: tokens.s8),
-                    _StatTile(
-                      icon: Icons.wallet_rounded,
-                      label: 'Min spend',
-                      value: _offer.minSpendBdt != null
-                          ? '৳${_offer.minSpendBdt}'
-                          : 'None',
-                    ),
-                    SizedBox(width: tokens.s8),
-                    _StatTile(
-                      icon: Icons.discount_rounded,
-                      label: 'Max off',
-                      value: _offer.maxDiscountBdt != null
-                          ? '৳${_offer.maxDiscountBdt}'
-                          : '—',
-                    ),
-                  ],
+                // Stats grid — IntrinsicHeight keeps all three tiles equal size
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _StatTile(
+                        icon: Icons.calendar_today_rounded,
+                        label: 'Valid until',
+                        value: _formatValidUntil(_offer.validUntil),
+                      ),
+                      SizedBox(width: tokens.s8),
+                      _StatTile(
+                        icon: Icons.wallet_rounded,
+                        label: 'Min spend',
+                        value: _offer.minSpendBdt != null
+                            ? '৳${_offer.minSpendBdt}'
+                            : 'None',
+                      ),
+                      SizedBox(width: tokens.s8),
+                      _StatTile(
+                        icon: Icons.discount_rounded,
+                        label: 'Max off',
+                        value: _offer.maxDiscountBdt != null
+                            ? '৳${_offer.maxDiscountBdt}'
+                            : '—',
+                      ),
+                    ],
+                  ),
                 ),
 
                 SizedBox(height: tokens.s24),

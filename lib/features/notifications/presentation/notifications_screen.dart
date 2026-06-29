@@ -32,6 +32,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         _items       = result.items.cast<Map<String, dynamic>>();
         _unreadCount = result.unreadCount;
       });
+      ref.read(unreadCountProvider.notifier).set(result.unreadCount);
     } finally {
       setState(() => _loading = false);
     }
@@ -40,19 +41,25 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Future<void> _markAllRead() async {
     await ref.read(notificationsRepositoryProvider).markAllRead();
     setState(() {
-      for (final n in _items) n['read'] = true;
+      for (final n in _items) { n['is_read'] = true; n['read'] = true; }
       _unreadCount = 0;
     });
+    ref.read(unreadCountProvider.notifier).clear();
   }
+
+  // Tolerant read check — live API uses `is_read`, the mock uses `read`.
+  bool _isUnread(Map<String, dynamic> n) =>
+      (n['is_read'] ?? n['read'] ?? true) == false;
 
   Future<void> _markRead(String id) async {
     await ref.read(notificationsRepositoryProvider).markRead(id);
     setState(() {
       for (final n in _items) {
-        if (n['id'] == id) n['read'] = true;
+        if ('${n['id']}' == id) { n['is_read'] = true; n['read'] = true; }
       }
-      _unreadCount = _items.where((n) => n['read'] == false).length;
+      _unreadCount = _items.where(_isUnread).length;
     });
+    ref.read(unreadCountProvider.notifier).set(_unreadCount);
   }
 
   @override
@@ -114,11 +121,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   itemBuilder: (_, i) => _NotifTile(
                     notif: _items[i],
                     onTap: () {
-                      final id = _items[i]['id'] as String;
-                      _markRead(id);
-                      final offerId = _items[i]['offer_id'] as String?;
-                      if (offerId != null && context.mounted) {
-                        context.push(AppRoutes.offerDetailPath(offerId));
+                      final n = _items[i];
+                      _markRead('${n['id']}');
+                      final offerId = n['offer_id'] as String?;
+                      final target = AppRoutes.resolveLink(n['link_url'] as String?)
+                          ?? (offerId != null
+                              ? AppRoutes.offerDetailPath(offerId)
+                              : null);
+                      if (target != null && context.mounted) {
+                        context.push(target);
                       }
                     },
                   ),
@@ -137,7 +148,7 @@ class _NotifTile extends StatelessWidget {
     final theme   = Theme.of(context);
     final cs      = theme.colorScheme;
     final tokens  = theme.tokens;
-    final isRead  = notif['read'] as bool? ?? true;
+    final isRead  = (notif['is_read'] ?? notif['read'] ?? true) == true;
     final type    = notif['type'] as String? ?? 'system';
 
     Color iconColor() => switch (type) {

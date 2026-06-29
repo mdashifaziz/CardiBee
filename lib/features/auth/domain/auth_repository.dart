@@ -19,11 +19,13 @@ abstract interface class AuthRepository {
     required int groupId,
     required String age,
     required String gender,
+    String? fcmToken,
   });
 
   Future<({String accessToken, String refreshToken, String username})> login({
     required String username,
     required String password,
+    String? fcmToken,
   });
 
   Future<void> logout({String? fcmToken});

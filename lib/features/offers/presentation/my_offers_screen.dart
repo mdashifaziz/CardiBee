@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cardibee_flutter/core/routing/app_routes.dart';
+import 'package:cardibee_flutter/core/error/app_failure.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
+import 'package:cardibee_flutter/core/widgets/error_retry_view.dart';
 import 'package:cardibee_flutter/core/widgets/offer_card_widget.dart';
 import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
@@ -28,6 +30,7 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
   List<Offer> _offers = [];
   bool _loading     = true;
   bool _loadingMore = false;
+  String? _error;
   String? _nextCursor;
   String? _cardFilter;
   final _scrollCtrl = ScrollController();
@@ -60,7 +63,7 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _nextCursor = null; });
+    setState(() { _loading = true; _error = null; _nextCursor = null; });
     try {
       final result = await ref.read(offersRepositoryProvider).listOffers(
         myCardsOnly: true,
@@ -69,6 +72,8 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
         sort: _sort,
       );
       setState(() { _offers = result.items; _nextCursor = result.nextCursor; });
+    } catch (e) {
+      setState(() => _error = e is AppFailure ? e.displayMessage : e.toString());
     } finally {
       setState(() => _loading = false);
     }
@@ -202,28 +207,45 @@ class _MyOffersScreenState extends ConsumerState<MyOffersScreen> {
             Expanded(
               child: _loading
                   ? const SkeletonOfferList()
-                  : _offers.isEmpty
-                      ? (hasCards
-                          ? const _NoOffersState()
-                          : _EmptyState(
-                              onAddCard: () => context.push(AppRoutes.addCard),
-                            ))
-                      : ListView.separated(
-                          controller: _scrollCtrl,
-                          padding: EdgeInsets.fromLTRB(
-                              tokens.s20, 0, tokens.s20, tokens.s24),
-                          itemCount: _offers.length + (_loadingMore ? 1 : 0),
-                          separatorBuilder: (_, __) => SizedBox(height: tokens.s8),
-                          itemBuilder: (_, i) {
-                            if (i == _offers.length) {
-                              return const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16),
-                                child: Center(child: CircularProgressIndicator()),
-                              );
-                            }
-                            return OfferCardWidget(offer: _offers[i]);
-                          },
-                        ),
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      child: _error != null
+                          ? ScrollFill(
+                              child: ErrorRetryView(
+                                title: 'Couldn\'t load offers',
+                                message: _error,
+                                onRetry: _load,
+                              ),
+                            )
+                          : _offers.isEmpty
+                              ? ScrollFill(
+                                  child: hasCards
+                                      ? const _NoOffersState()
+                                      : _EmptyState(
+                                          onAddCard: () =>
+                                              context.push(AppRoutes.addCard),
+                                        ),
+                                )
+                              : ListView.separated(
+                                  controller: _scrollCtrl,
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  padding: EdgeInsets.fromLTRB(
+                                      tokens.s20, 0, tokens.s20, tokens.s24),
+                                  itemCount: _offers.length + (_loadingMore ? 1 : 0),
+                                  separatorBuilder: (_, __) =>
+                                      SizedBox(height: tokens.s8),
+                                  itemBuilder: (_, i) {
+                                    if (i == _offers.length) {
+                                      return const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 16),
+                                        child: Center(
+                                            child: CircularProgressIndicator()),
+                                      );
+                                    }
+                                    return OfferCardWidget(offer: _offers[i]);
+                                  },
+                                ),
+                    ),
             ),
           ],
         ),

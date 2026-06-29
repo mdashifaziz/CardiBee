@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cardibee_flutter/core/network/api_endpoints.dart';
 import 'package:cardibee_flutter/core/network/dio_client.dart';
+import 'package:cardibee_flutter/core/notifications/push_notification_service.dart';
 import 'package:cardibee_flutter/core/routing/app_routes.dart';
 import 'package:cardibee_flutter/core/storage/token_storage.dart';
 import 'package:cardibee_flutter/core/theme/app_colors.dart';
@@ -52,8 +53,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final cs         = theme.colorScheme;
     final tokens     = theme.tokens;
     final user       = ref.watch(currentUserProvider);
-    final themeMode  = ref.watch(themeProvider);
-    final isDark     = themeMode == ThemeMode.dark;
+    ref.watch(themeProvider); // rebuild when the user toggles
+    final isDark     = theme.brightness == Brightness.dark;
     final cards      = ref.watch(cardsNotifierProvider).valueOrNull ?? [];
     final savedCount = ref.watch(favoritesProvider).valueOrNull?.length ?? 0;
 
@@ -329,6 +330,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _logout(BuildContext context) async {
+    // Tell the backend to drop this device token, then forget it locally so
+    // the device stops receiving pushes for this account.
+    final fcmToken = PushNotificationService.instance.token;
+    await ref.read(authRepositoryProvider).logout(fcmToken: fcmToken);
+    await PushNotificationService.instance.deleteToken();
     await ref.read(tokenStorageProvider).clearTokens();
     ref.read(currentUserProvider.notifier).state = null;
     if (context.mounted) context.go(AppRoutes.auth);

@@ -46,6 +46,12 @@ abstract final class AppColors {
   static const List<Color> gradientBurgundy  = [Color(0xFF3B1020), Color(0xFF5C1F35)];
   static const List<Color> gradientGraphite  = [Color(0xFF252C3D), Color(0xFF38404F)];
 
+  // Honey gradient — wallet card & category tiles
+  static const List<Color> gradientHoney = [
+    Color(0xFFFFE9B5),
+    Color(0xFFFBD473),
+  ];
+
   // Hero background gradient
   static const List<Color> gradientHero = [
     Color(0xFF0B1437),

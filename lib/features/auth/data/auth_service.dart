@@ -40,6 +40,7 @@ class AuthService {
     required int groupId,
     required String age,
     required String gender,
+    String? fcmToken,
   }) async {
     try {
       final res = await _dio.post<Map<String, dynamic>>(
@@ -53,6 +54,7 @@ class AuthService {
           'group_id':  groupId,
           'age':       age,
           'gender':    gender,
+          if (fcmToken != null) 'fcm_token': fcmToken,
         },
       );
       return res.data!;
@@ -65,11 +67,16 @@ class AuthService {
   Future<Map<String, dynamic>> login({
     required String username,
     required String password,
+    String? fcmToken,
   }) async {
     try {
       final res = await _dio.post<Map<String, dynamic>>(
         ApiEndpoints.login,
-        data: {'username': username, 'password': password},
+        data: {
+          'username': username,
+          'password': password,
+          if (fcmToken != null) 'fcm_token': fcmToken,
+        },
       );
       return res.data!;
     } on DioException catch (e) {

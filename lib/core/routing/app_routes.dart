@@ -25,4 +25,16 @@ abstract final class AppRoutes {
   static const String about         = '/app/about';
 
   static String offerDetailPath(String id) => '/app/offer/$id';
+
+  /// Maps a backend `link_url` (e.g. '/app/offers/123', '/app/profile', or an
+  /// absolute URL) to an in-app route, or null if it can't be opened in-app.
+  static String? resolveLink(String? linkUrl) {
+    if (linkUrl == null || linkUrl.isEmpty) return null;
+    if (linkUrl.startsWith('http')) return null; // external — needs a browser
+    // Portal uses plural 'offers'; our route is singular 'offer'.
+    final offer = RegExp(r'/offers?/(\w+)').firstMatch(linkUrl);
+    if (offer != null) return offerDetailPath(offer.group(1)!);
+    if (linkUrl.startsWith('/app/')) return linkUrl; // already an app path
+    return null;
+  }
 }

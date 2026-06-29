@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cardibee_flutter/core/error/app_failure.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
+import 'package:cardibee_flutter/core/widgets/error_retry_view.dart';
 import 'package:cardibee_flutter/core/widgets/offer_card_widget.dart';
 import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
@@ -17,6 +19,7 @@ class FavoritesScreen extends ConsumerStatefulWidget {
 class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
   List<Offer> _allOffers = [];
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -25,10 +28,12 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() { _loading = true; _error = null; });
     try {
       final result = await ref.read(offersRepositoryProvider).listSavedOffers();
       setState(() => _allOffers = result.items);
+    } catch (e) {
+      setState(() => _error = e is AppFailure ? e.displayMessage : e.toString());
     } finally {
       setState(() => _loading = false);
     }
@@ -60,15 +65,27 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
       ),
       body: _loading
           ? const SkeletonOfferList()
-          : visible.isEmpty
-              ? _EmptyFavorites()
-              : ListView.separated(
-                  padding: EdgeInsets.fromLTRB(
-                      tokens.s20, tokens.s16, tokens.s20, tokens.s24),
-                  itemCount: visible.length,
-                  separatorBuilder: (_, __) => SizedBox(height: tokens.s8),
-                  itemBuilder: (_, i) => OfferCardWidget(offer: visible[i]),
-                ),
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: _error != null
+                  ? ScrollFill(
+                      child: ErrorRetryView(
+                        title: 'Couldn\'t load favorites',
+                        message: _error,
+                        onRetry: _load,
+                      ),
+                    )
+                  : visible.isEmpty
+                      ? ScrollFill(child: _EmptyFavorites())
+                      : ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: EdgeInsets.fromLTRB(
+                              tokens.s20, tokens.s16, tokens.s20, tokens.s24),
+                          itemCount: visible.length,
+                          separatorBuilder: (_, __) => SizedBox(height: tokens.s8),
+                          itemBuilder: (_, i) => OfferCardWidget(offer: visible[i]),
+                        ),
+            ),
     );
   }
 }

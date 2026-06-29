@@ -9,11 +9,13 @@ import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/theme/app_typography.dart';
 import 'package:cardibee_flutter/core/theme/theme_provider.dart';
 import 'package:cardibee_flutter/core/widgets/credit_card_visual.dart';
+import 'package:cardibee_flutter/core/widgets/error_retry_view.dart';
 import 'package:cardibee_flutter/core/widgets/offer_card_widget.dart';
 import 'package:cardibee_flutter/features/auth/providers/auth_provider.dart';
 import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
+import 'package:cardibee_flutter/features/notifications/providers/notifications_provider.dart';
 import 'package:cardibee_flutter/features/offers/domain/models/offer.dart';
 import 'package:cardibee_flutter/features/offers/providers/offers_provider.dart';
 
@@ -36,8 +38,10 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  List<Offer> _allOffers = [];
+  List<Offer> _featured = [];
+  List<Offer> _expiring = [];
   bool _offersLoaded = false;
+  bool _offersError  = false;
   final _featuredCtrl = PageController(viewportFraction: 0.88);
   Timer? _featuredTimer;
 
@@ -70,15 +74,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _loadOffers() async {
     final repo = ref.read(offersRepositoryProvider);
+    if (mounted) setState(() => _offersError = false);
     try {
-      final result = await repo.listOffers(myCardsOnly: false, limit: 16, sort: 'expiring_soon');
+      final results = await Future.wait([
+        repo.listOffers(myCardsOnly: false, featured: true, limit: 16),
+        repo.listOffers(myCardsOnly: false, featured: true, limit: 12),
+      ]);
       if (mounted) {
-        setState(() { _allOffers = result.items; _offersLoaded = true; });
-        _startFeaturedAutoSlide(result.items.where((o) => o.featured).length);
+        setState(() {
+          _featured = results[0].items;
+          _expiring = results[1].items;
+          _offersLoaded = true;
+        });
+        _startFeaturedAutoSlide(_featured.length);
       }
     } catch (_) {
-      if (mounted) setState(() => _offersLoaded = true);
+      if (mounted) setState(() { _offersLoaded = true; _offersError = true; });
     }
+  }
+
+  Future<void> _refresh() async {
+    ref.invalidate(cardsNotifierProvider);
+    await _loadOffers();
   }
 
   @override
@@ -86,14 +103,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final theme      = Theme.of(context);
     final cs         = theme.colorScheme;
     final tokens     = theme.tokens;
-    final themeMode  = ref.watch(themeProvider);
-    final isDark     = themeMode == ThemeMode.dark;
+    ref.watch(themeProvider); // rebuild when the user toggles
+    final isDark     = theme.brightness == Brightness.dark;
     final user       = ref.watch(currentUserProvider);
     final cardsAsync = ref.watch(cardsNotifierProvider);
+    final unread     = ref.watch(unreadCountProvider);
 
     final cards    = cardsAsync.valueOrNull ?? const <UserCard>[];
-    final featured = _allOffers.where((o) => o.featured).toList();
-    final expiring = _allOffers.where((o) => o.daysLeft <= 7).take(3).toList();
+    final featured = _featured;
+    final expiring = _expiring;
 
     if (cardsAsync.isLoading && !cardsAsync.hasValue) {
       return Scaffold(
@@ -141,7 +159,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       backgroundColor: cs.surface,
       body: SafeArea(
-        child: CustomScrollView(
+        child: RefreshIndicator(
+          onRefresh: _refresh,
+          child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             // ── Header ──────────────────────────────────────────────────
             SliverToBoxAdapter(
@@ -173,8 +194,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     SizedBox(width: tokens.s8),
                     _HeaderBtn(
                       icon: Icons.notifications_outlined,
-                      semanticLabel: 'Notifications',
-                      badge: true,
+                      semanticLabel: unread > 0
+                          ? 'Notifications, $unread unread'
+                          : 'Notifications',
+                      badgeCount: unread,
                       onTap: () => context.push(AppRoutes.notifications),
                     ),
                   ],
@@ -221,80 +244,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 padding: EdgeInsets.fromLTRB(tokens.s16, tokens.s24, tokens.s16, 0),
                 child: _HeroCard(
                   cards: cards,
-                  activeOfferCount: _allOffers.length,
+                  activeOfferCount: _featured.length,
                   onViewCards: () => context.go(AppRoutes.cards),
                   onCompare: () => context.push(AppRoutes.compare),
-                ),
-              ),
-            ),
-
-            // ── Categories ───────────────────────────────────────────────
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(tokens.s16, tokens.s24, tokens.s16, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Offers by category',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : const Color(0xFF131B4D),
-                      ),
-                    ),
-                    SizedBox(height: tokens.s16),
-                    GridView.count(
-                      crossAxisCount: 4,
-                      mainAxisSpacing: 7,
-                      crossAxisSpacing: 6,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      childAspectRatio: 0.95,
-                      children: _categories.map((cat) {
-                        return Semantics(
-                          label: cat.name,
-                          button: true,
-                          child: GestureDetector(
-                            onTap: () => context.push('${AppRoutes.browse}?cat=${cat.key}'),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF181B31) : Colors.white,
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(
-                                  color: isDark ? const Color(0xFF2A2E45) : const Color(0xFFE6E8F0),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    cat.icon,
-                                    size: 32,
-                                    color: isDark ? const Color(0xFFF7B638) : Colors.black,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    cat.name,
-                                    style: TextStyle(
-                                      fontFamily: AppFonts.sans,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                      color: isDark ? Colors.white : const Color(0xFF131B4D),
-                                      letterSpacing: -0.25,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
                 ),
               ),
             ),
@@ -343,6 +295,90 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ],
+
+            // ── Categories ───────────────────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(tokens.s16, tokens.s24, tokens.s16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Offers by category',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : const Color(0xFF131B4D),
+                      ),
+                    ),
+                    SizedBox(height: tokens.s16),
+                    GridView.count(
+                      crossAxisCount: 4,
+                      mainAxisSpacing: 7,
+                      crossAxisSpacing: 6,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      childAspectRatio: 0.95,
+                      children: _categories.map((cat) {
+                        return Semantics(
+                          label: cat.name,
+                          button: true,
+                          child: GestureDetector(
+                            onTap: () => context.push('${AppRoutes.browse}?cat=${cat.key}'),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: isDark ? null : tokens.gradientHoney,
+                                color: isDark ? const Color(0xFF181B31) : null,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: isDark ? const Color(0xFF2A2E45) : const Color(0xFFEAD08A),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    cat.icon,
+                                    size: 32,
+                                    color: isDark ? const Color(0xFFF7B638) : Colors.black,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    cat.name,
+                                    style: TextStyle(
+                                      fontFamily: AppFonts.sans,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white : const Color(0xFF131B4D),
+                                      letterSpacing: -0.25,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ── Offers failed to load ────────────────────────────────────
+            if (_offersError && _featured.isEmpty && _expiring.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.only(top: tokens.s24),
+                  child: ErrorRetryView(
+                    title: 'Couldn\'t load offers',
+                    onRetry: _loadOffers,
+                  ),
+                ),
+              ),
 
             // ── Expiring soon ────────────────────────────────────────────
             if (expiring.isNotEmpty) ...[
@@ -394,6 +430,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ] else if (_offersLoaded)
               SliverToBoxAdapter(child: SizedBox(height: tokens.s24)),
           ],
+          ),
         ),
       ),
     );
@@ -436,18 +473,21 @@ class _HeroCardState extends State<_HeroCard> {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = Theme.of(context).tokens;
+    final theme  = Theme.of(context);
+    final tokens = theme.tokens;
+    final isDark = theme.brightness == Brightness.dark;
+    final onCard = isDark ? Colors.white : const Color(0xFF131B4D);
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: tokens.s20),
       decoration: BoxDecoration(
-        gradient: tokens.gradientHero,
+        gradient: isDark ? tokens.gradientHero : tokens.gradientHoney,
         borderRadius: tokens.brXl,
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x33000000),
+            color: isDark ? const Color(0x33000000) : const Color(0x1F182040),
             blurRadius: 20,
-            offset: Offset(0, 8),
+            offset: const Offset(0, 8),
             spreadRadius: -4,
           ),
         ],
@@ -472,17 +512,17 @@ class _HeroCardState extends State<_HeroCard> {
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 1.5,
-                          color: Colors.white.withOpacity(0.6),
+                          color: onCard.withOpacity(0.6),
                         ),
                       ),
                       SizedBox(height: tokens.s4),
                       Text(
                         '${widget.cards.length} cards',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: AppFonts.display,
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: onCard,
                         ),
                       ),
                       SizedBox(height: tokens.s4),
@@ -491,7 +531,7 @@ class _HeroCardState extends State<_HeroCard> {
                         style: TextStyle(
                           fontFamily: AppFonts.sans,
                           fontSize: 12,
-                          color: Colors.white.withOpacity(0.7),
+                          color: onCard.withOpacity(0.7),
                         ),
                       ),
                     ],
@@ -505,22 +545,22 @@ class _HeroCardState extends State<_HeroCard> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
+                          color: onCard.withOpacity(isDark ? 0.12 : 0.08),
                           borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: Colors.white.withOpacity(0.3)),
+                          border: Border.all(color: onCard.withOpacity(isDark ? 0.3 : 0.25)),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.compare_arrows_rounded, size: 13, color: Colors.white),
-                            SizedBox(width: 4),
+                            Icon(Icons.compare_arrows_rounded, size: 13, color: onCard),
+                            const SizedBox(width: 4),
                             Text(
                               'Compare',
                               style: TextStyle(
                                 fontFamily: AppFonts.sans,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: onCard,
                               ),
                             ),
                           ],
@@ -533,10 +573,10 @@ class _HeroCardState extends State<_HeroCard> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF7B638),
+                          color: isDark ? const Color(0xFFF7B638) : const Color(0xFF131B4D),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
@@ -545,11 +585,12 @@ class _HeroCardState extends State<_HeroCard> {
                                 fontFamily: AppFonts.sans,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF131B4D),
+                                color: isDark ? const Color(0xFF131B4D) : Colors.white,
                               ),
                             ),
-                            SizedBox(width: 4),
-                            Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF131B4D)),
+                            const SizedBox(width: 4),
+                            Icon(Icons.chevron_right_rounded, size: 16,
+                                color: isDark ? const Color(0xFF131B4D) : Colors.white),
                           ],
                         ),
                       ),
@@ -617,12 +658,12 @@ class _HeaderBtn extends StatelessWidget {
     required this.icon,
     required this.semanticLabel,
     required this.onTap,
-    this.badge = false,
+    this.badgeCount = 0,
   });
   final IconData icon;
   final String semanticLabel;
   final VoidCallback onTap;
-  final bool badge;
+  final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -635,18 +676,32 @@ class _HeaderBtn extends StatelessWidget {
         child: Container(
           width: 40, height: 40,
           decoration: BoxDecoration(color: cs.surfaceContainerLow, shape: BoxShape.circle),
+          clipBehavior: Clip.none,
           child: Stack(
             alignment: Alignment.center,
+            clipBehavior: Clip.none,
             children: [
               Icon(icon, size: 18, color: cs.onSurface),
-              if (badge)
+              if (badgeCount > 0)
                 Positioned(
-                  right: 8, top: 8,
+                  right: 4, top: 4,
                   child: Container(
-                    width: 8, height: 8,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF46B10),
-                      shape: BoxShape.circle,
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF46B10),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: cs.surfaceContainerLow, width: 1.5),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      badgeCount > 9 ? '9+' : '$badgeCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        height: 1,
+                      ),
                     ),
                   ),
                 ),

@@ -47,6 +47,7 @@ class Offer {
     this.featured = false,
     required this.bannerStart,
     required this.bannerEnd,
+    this.bannerImageUrl,
     this.isSaved = false,
     this.userQualifyingCardIds = const [],
   });
@@ -74,6 +75,7 @@ class Offer {
   final bool featured;
   final String bannerStart;  // hex e.g. '#F97316'
   final String bannerEnd;
+  final String? bannerImageUrl;  // full-bleed banner image (featured cards)
   final bool isSaved;
   final List<String> userQualifyingCardIds;
 
@@ -103,6 +105,7 @@ class Offer {
     featured:        j['featured'] as bool? ?? false,
     bannerStart:     j['banner_gradient_start'] as String,
     bannerEnd:       j['banner_gradient_end'] as String,
+    bannerImageUrl:  j['banner'] as String?,
     isSaved:         j['is_saved'] as bool? ?? false,
     userQualifyingCardIds: (j['user_qualifying_card_ids'] as List<dynamic>?)
         ?.cast<String>() ?? [],
@@ -118,6 +121,7 @@ class Offer {
     minSpendBdt: minSpendBdt, maxDiscountBdt: maxDiscountBdt,
     applicableDays: applicableDays, eligibleCards: eligibleCards,
     featured: featured, bannerStart: bannerStart, bannerEnd: bannerEnd,
+    bannerImageUrl: bannerImageUrl,
     isSaved: isSaved ?? this.isSaved,
     userQualifyingCardIds: userQualifyingCardIds,
   );

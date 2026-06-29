@@ -71,6 +71,13 @@ final class CardiBeeTokens {
     colors: AppColors.gradientAccent,
   );
 
+  // Honey gradient ≈ CSS linear-gradient(160deg, #FFE9B5, #FBD473)
+  LinearGradient get gradientHoney => const LinearGradient(
+    begin: Alignment(-0.34, -1.0),
+    end: Alignment(0.34, 1.0),
+    colors: AppColors.gradientHoney,
+  );
+
   LinearGradient cardGradient(String gradientKey) {
     final colors = _cardGradients[gradientKey] ?? AppColors.gradientNavy;
     return LinearGradient(

@@ -4,8 +4,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cardibee_flutter/core/routing/app_routes.dart';
+import 'package:cardibee_flutter/core/error/app_failure.dart';
 import 'package:cardibee_flutter/core/theme/app_tokens.dart';
 import 'package:cardibee_flutter/core/widgets/credit_card_visual.dart';
+import 'package:cardibee_flutter/core/widgets/error_retry_view.dart';
 import 'package:cardibee_flutter/core/widgets/skeleton.dart';
 import 'package:cardibee_flutter/features/cards/domain/models/user_card.dart';
 import 'package:cardibee_flutter/features/cards/providers/cards_notifier.dart';
@@ -24,15 +26,20 @@ class CardsScreen extends ConsumerWidget {
       backgroundColor: cs.surface,
       body: SafeArea(
         child: state.when(
-          loading: () => const _CardsSkeleton(showRetry: false),
-          error:   (e, _) => _CardsSkeleton(
-            showRetry: true,
-            message: e.toString(),
-            onRetry: () => ref.invalidate(cardsNotifierProvider),
+          loading: () => const _CardsSkeleton(),
+          error:   (e, _) => ScrollFill(
+            child: ErrorRetryView(
+              title: 'Couldn\'t load your cards',
+              message: e is AppFailure ? e.displayMessage : e.toString(),
+              onRetry: () => ref.invalidate(cardsNotifierProvider),
+            ),
           ),
           data:    (cards) => Stack(
             children: [
-              CustomScrollView(
+              RefreshIndicator(
+                onRefresh: () async => ref.invalidate(cardsNotifierProvider),
+                child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
@@ -63,6 +70,7 @@ class CardsScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
+              ),
               ),
               // Floating buttons
               Positioned(
@@ -112,6 +120,7 @@ class _CardTile extends ConsumerWidget {
     final theme  = Theme.of(context);
     final cs     = theme.colorScheme;
     final tokens = theme.tokens;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Column(
       children: [
@@ -128,7 +137,8 @@ class _CardTile extends ConsumerWidget {
         // Info row
         Container(
           decoration: BoxDecoration(
-            color: cs.surfaceContainerLow,
+            gradient: isDark ? null : tokens.gradientHoney,
+            color: isDark ? cs.surfaceContainerLow : null,
             borderRadius: tokens.brLg,
           ),
           padding: EdgeInsets.symmetric(
@@ -262,15 +272,7 @@ class _GlassCompareButton extends StatelessWidget {
 // ── Loading / error skeleton ─────────────────────────────────────────────────
 
 class _CardsSkeleton extends StatelessWidget {
-  const _CardsSkeleton({
-    required this.showRetry,
-    this.message,
-    this.onRetry,
-  });
-
-  final bool showRetry;
-  final String? message;
-  final VoidCallback? onRetry;
+  const _CardsSkeleton();
 
   @override
   Widget build(BuildContext context) {
@@ -284,12 +286,8 @@ class _CardsSkeleton extends StatelessWidget {
       children: [
         Text('My cards', style: theme.textTheme.headlineLarge),
         Text(
-          showRetry
-              ? (message ?? 'Couldn\'t load your cards.')
-              : 'Loading your wallet…',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: showRetry ? cs.error : cs.onSurfaceVariant,
-          ),
+          'Loading your wallet…',
+          style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
         ),
         SizedBox(height: tokens.s24),
         for (var i = 0; i < 3; i++)
@@ -297,23 +295,6 @@ class _CardsSkeleton extends StatelessWidget {
             padding: EdgeInsets.only(bottom: tokens.s20),
             child: _SkeletonCard(),
           ),
-        if (showRetry && onRetry != null) ...[
-          SizedBox(height: tokens.s8),
-          Center(
-            child: FilledButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('Tap to retry'),
-              style: FilledButton.styleFrom(
-                backgroundColor: cs.primary,
-                foregroundColor: cs.onPrimary,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 32, vertical: 12),
-                shape: const StadiumBorder(),
-              ),
-            ),
-          ),
-        ],
       ],
     );
   }

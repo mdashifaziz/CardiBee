@@ -31,6 +31,7 @@ final class MockAuthRepository implements AuthRepository {
     required int groupId,
     required String age,
     required String gender,
+    String? fcmToken,
   }) async {
     await Future.delayed(const Duration(milliseconds: 800));
     if (otp != '123456') throw Exception('Invalid OTP. Hint: 123456');
@@ -45,6 +46,7 @@ final class MockAuthRepository implements AuthRepository {
   Future<({String accessToken, String refreshToken, String username})> login({
     required String username,
     required String password,
+    String? fcmToken,
   }) async {
     await Future.delayed(const Duration(milliseconds: 600));
     if (password != '123456') throw Exception('Wrong password.');

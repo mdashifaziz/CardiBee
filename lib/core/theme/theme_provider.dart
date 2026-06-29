@@ -16,7 +16,16 @@ class ThemeNotifier extends Notifier<ThemeMode> {
   }
 
   void toggle() {
-    final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    // Resolve the *actual* brightness, accounting for system mode, so the
+    // first toggle always flips what the user currently sees.
+    final isDarkNow = switch (state) {
+      ThemeMode.dark  => true,
+      ThemeMode.light => false,
+      ThemeMode.system =>
+        WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+            Brightness.dark,
+    };
+    final next = isDarkNow ? ThemeMode.light : ThemeMode.dark;
     state = next;
     ref.read(prefsStorageProvider).setTheme(next == ThemeMode.dark ? 'dark' : 'light');
   }

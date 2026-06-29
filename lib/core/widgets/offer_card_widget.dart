@@ -455,6 +455,15 @@ class _FeaturedOfferCard extends StatelessWidget {
           clipBehavior: Clip.hardEdge,
           child: Stack(
             children:[
+              // Full-bleed banner image (falls back to gradient on null/error)
+              if (offer.bannerImageUrl != null && offer.bannerImageUrl!.isNotEmpty)
+                Positioned.fill(
+                  child: Image.network(
+                    offer.bannerImageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                ),
               const Positioned.fill(child: _GradientOverlay()),
               // Category badge — top right (dark translucent so text is readable on any banner)
               Positioned(

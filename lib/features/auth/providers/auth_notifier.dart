@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cardibee_flutter/core/notifications/push_notification_service.dart';
 import 'package:cardibee_flutter/core/storage/token_storage.dart';
 import 'package:cardibee_flutter/features/auth/domain/auth_repository.dart';
 import 'package:cardibee_flutter/features/auth/providers/auth_provider.dart';
@@ -17,9 +18,11 @@ class AuthNotifier extends Notifier<AuthState> {
   }) async {
     state = const AuthLoading();
     try {
+      final fcmToken = await PushNotificationService.instance.ensureToken();
       final result = await ref.read(authRepositoryProvider).login(
             username: username,
             password: password,
+            fcmToken: fcmToken,
           );
       await ref.read(tokenStorageProvider).saveTokens(
             accessToken: result.accessToken,
@@ -64,6 +67,7 @@ class AuthNotifier extends Notifier<AuthState> {
     if (prev is! AuthOtpSent) return;
     state = const AuthLoading();
     try {
+      final fcmToken = await PushNotificationService.instance.ensureToken();
       final result = await ref.read(authRepositoryProvider).verifyOtpAndSignup(
             contact: prev.contact,
             otp: otp,
@@ -73,6 +77,7 @@ class AuthNotifier extends Notifier<AuthState> {
             groupId: prev.groupId,
             age: prev.age,
             gender: prev.gender,
+            fcmToken: fcmToken,
           );
       await ref.read(tokenStorageProvider).saveTokens(
             accessToken: result.accessToken,

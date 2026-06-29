@@ -36,6 +36,7 @@ final class ApiAuthRepository implements AuthRepository {
     required int groupId,
     required String age,
     required String gender,
+    String? fcmToken,
   }) async {
     try {
       final data = await _auth.verifyOtpAndSignup(
@@ -47,6 +48,7 @@ final class ApiAuthRepository implements AuthRepository {
         groupId: groupId,
         age: age,
         gender: gender,
+        fcmToken: fcmToken,
       );
       return (
         accessToken: (data['access_token'] ?? data['access']) as String,
@@ -62,9 +64,14 @@ final class ApiAuthRepository implements AuthRepository {
   Future<({String accessToken, String refreshToken, String username})> login({
     required String username,
     required String password,
+    String? fcmToken,
   }) async {
     try {
-      final data = await _auth.login(username: username, password: password);
+      final data = await _auth.login(
+        username: username,
+        password: password,
+        fcmToken: fcmToken,
+      );
       return (
         accessToken: data['access'] as String,
         refreshToken: data['refresh'] as String,

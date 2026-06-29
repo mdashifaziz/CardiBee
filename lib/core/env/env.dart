@@ -69,7 +69,7 @@ abstract final class Env {
     // 3. PRODUCTION / STAGING
     return switch (_env) {
       'prod'    => 'https://motosnapai-production.up.railway.app/',
-      'staging' => 'https://motosnapai-production.up.railway.app/', // Update if you create a staging backend
+      'staging' => 'https://cardibeehive-production.up.railway.app/',
       _         => 'http://10.0.2.2:8000/', // Fallback
     };
   }
