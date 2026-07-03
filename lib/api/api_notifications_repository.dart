@@ -53,6 +53,18 @@ final class ApiNotificationsRepository implements NotificationsRepository {
   }
 
   @override
+  Future<void> registerDevice(String fcmToken) async {
+    try {
+      await _dio.post<void>(ApiEndpoints.deviceRegister, data: {
+        'fcm_token': fcmToken,
+        'platform': 'android', // iOS later
+      });
+    } catch (e) {
+      throw mapError(e);
+    }
+  }
+
+  @override
   Future<int> markAllRead() async {
     try {
       // Backend returns only {status, message} — no count.

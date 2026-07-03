@@ -47,6 +47,11 @@ final class MockNotificationsRepository implements NotificationsRepository {
   }
 
   @override
+  Future<void> registerDevice(String fcmToken) async {
+    // No-op — mock mode has no push backend.
+  }
+
+  @override
   Future<void> markRead(String notificationId) async {
     final idx = _items.indexWhere((n) => n['id'] == notificationId);
     if (idx != -1) _items[idx]['read'] = true;

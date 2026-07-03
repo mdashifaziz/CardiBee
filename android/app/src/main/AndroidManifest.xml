@@ -1,11 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Required for push notifications on Android 13+ (API 33). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- usesCleartextTraffic: remove in dev/live -->
     <application
         android:label="cardibee_flutter"
         android:name="${applicationName}"
-        android:icon="@mipmap/app_logo">
-        android:usesCleartextTraffic="true"   <!-- remove in dev/live -->
+        android:icon="@mipmap/app_logo"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -33,6 +34,17 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Push notification defaults (FCM). Channel is created in MainActivity. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="cardibee_default" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_color" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

@@ -43,3 +43,15 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase config — contains API keys; each dev grabs their own copy
+# (Firebase console / `flutterfire configure`). Never commit.
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+
+# Local env / signing secrets
+.env
+android/key.properties
+*.jks
+*.keystore

@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cardibee_flutter/app/app.dart';
+import 'package:cardibee_flutter/firebase_options.dart';
 import 'package:cardibee_flutter/core/notifications/push_notification_service.dart';
 import 'package:cardibee_flutter/core/storage/prefs_storage.dart';
 import 'package:cardibee_flutter/core/storage/token_storage.dart';
@@ -35,7 +36,9 @@ Future<void> main() async {
   // Skipped in mock mode and gracefully degraded if config file is missing.
   if (!Env.useMockApi) {
     try {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
       await PushNotificationService.instance.init();
     } catch (e) {

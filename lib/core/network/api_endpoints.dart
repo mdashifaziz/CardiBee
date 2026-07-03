@@ -20,6 +20,9 @@ abstract final class ApiEndpoints {
 
   // Simple portal-pushed notifications shown in the in-app list.
   static const String notifications            = 'nucleus/notifications/android/';
+  // Idempotent (update_or_create on token; reactivates + reassigns to the
+  // current JWT user) — safe to call on every app start and token refresh.
+  static const String deviceRegister           = 'nucleus/notifications/devices/register/';
   static String notificationRead(String id)    => 'nucleus/notifications/$id/read/';
   static const String notificationsReadAll     = 'nucleus/notifications/read-all/';
   static const String notificationPreferences  = 'nucleus/notifications/preferences/';
